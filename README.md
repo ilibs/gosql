@@ -1,0 +1,2 @@
+# gosql
+Keep simple
