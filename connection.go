@@ -54,9 +54,9 @@ func Connect(configs map[string]*Config) {
 		}
 		log.Println("[db] connect:" + key)
 
-		if conf.ShowSql {
-			//sess.SetLogging(true)
-		}
+		//if conf.ShowSql {
+		//	sess.SetLogging(true)
+		//}
 
 		sess.SetMaxOpenConns(conf.MaxOpenConns)
 		sess.SetMaxIdleConns(conf.MaxIdleConns)
