@@ -92,7 +92,7 @@ func TestBuilder_All(t *testing.T) {
 		insert(1)
 		insert(2)
 
-		user := make([]Users, 0)
+		user := make([]*Users, 0)
 		err := Model(&user).All()
 
 		if err != nil {
