@@ -11,6 +11,8 @@ Connection database and use sqlx native function,See the https://github.com/jmoi
 import "github.com/ilibs/gosql"
 
 func main(){
+	configs := make(map[string]*Config)
+
     configs["default"] = &gosql.Config{
         Enable:  true,
         Driver:  "mysql",
@@ -24,6 +26,28 @@ func main(){
     gosql.DB().QueryRowx("select * from users where id = 1")
 }
 
+```
+
+Default connection key is `default` config, So you can use a simpler wraper function
+
+```go
+//Exec
+gosql.Exec("insert into users(name,email,created_at,updated_at) value(?,?,?,?)","test","test@gmail.com",time.Now(),time.Now())
+
+//Queryx
+rows,err := gosql.Queryx("select * from users")
+for rows.Next() {
+    user := &Users{}
+    err = rows.StructScan(user)
+}
+
+//QueryRowx
+user := &Users{}
+err := gosql.QueryRowx("select * from users where id = 1").StructScan(user)
+
+//Change database
+db := gosql.Use("test")
+db.Queryx("select * from tests")
 ```
 
 ## CRUD interface

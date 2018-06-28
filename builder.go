@@ -141,12 +141,7 @@ func (b *Builder) Offset(i int) IBuilder {
 }
 
 func (b *Builder) OrderBy(str string) IBuilder {
-	if str == "" {
-		b.order = ""
-	} else {
-		b.order = fmt.Sprintf("ORDER BY %s", str)
-	}
-
+	b.order = fmt.Sprintf("ORDER BY %s", str)
 	return b
 }
 
@@ -214,7 +209,6 @@ func (b *Builder) Get() (err error) {
 
 func (b *Builder) All() (err error) {
 	query := b.queryString()
-
 	defer func(start time.Time) {
 		logger.Log(&QueryStatus{
 			Query: b.queryString(),
