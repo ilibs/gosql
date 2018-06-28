@@ -214,14 +214,15 @@ func (b *Builder) Get() (err error) {
 func (b *Builder) All() (err error) {
 	query := b.queryString()
 
-	defer func() {
+	defer func(start time.Time) {
 		logger.Log(&QueryStatus{
 			Query: b.queryString(),
 			Args:  b.args,
 			Err:   err,
+			Start: start,
 			End:   time.Now(),
 		})
-	}()
+	}(time.Now())
 
 	err = b.db.Select(b.model, query, b.args...)
 	return err
