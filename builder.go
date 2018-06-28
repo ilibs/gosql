@@ -1,15 +1,16 @@
 package gosql
 
 import (
-	"github.com/jmoiron/sqlx"
-	"github.com/jmoiron/sqlx/reflectx"
+	"database/sql"
 	"fmt"
-	"strings"
-	"sort"
 	"log"
 	"reflect"
+	"sort"
+	"strings"
 	"time"
-	"database/sql"
+
+	"github.com/jmoiron/sqlx"
+	"github.com/jmoiron/sqlx/reflectx"
 )
 
 var (

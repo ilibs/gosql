@@ -2,9 +2,9 @@ package gosql
 
 import (
 	"fmt"
+	"log"
 	"regexp"
 	"strings"
-	"log"
 	"time"
 )
 

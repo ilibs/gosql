@@ -1,11 +1,11 @@
 package gosql
 
 import (
-	"time"
-	"testing"
-	"strconv"
-	"fmt"
 	"encoding/json"
+	"fmt"
+	"strconv"
+	"testing"
+	"time"
 )
 
 var (
@@ -218,7 +218,7 @@ func TestBuilder_Where(t *testing.T) {
 		insert(1)
 		insert(2)
 		insert(3)
-		user := make([]*Users,0)
+		user := make([]*Users, 0)
 		err := Model(&user).Where("id in(?,?)", 2, 3).OrderBy("id desc").All()
 
 		if err != nil {
