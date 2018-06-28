@@ -1,5 +1,5 @@
 # gosql
-Keep simple
+This is a database operations class library based on [sqlx](https://github.com/jmoiron/sqlx), which is simple and will continue to be simple
 
 <a href="https://travis-ci.org/ilibs/gosql"><img src="https://travis-ci.org/ilibs/gosql.svg" alt="Build Status"></a>
 
