@@ -8,13 +8,14 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
+var Default = "default"
 var dbService = make(map[string]*sqlx.DB, 0)
 
 // DB gets the specified database engine,
 // or the default DB if no name is specified.
 func DB(name ...string) *sqlx.DB {
 	if len(name) == 0 {
-		return dbService["default"]
+		return dbService[Default]
 	}
 	engine, ok := dbService[name[0]]
 	if !ok {
@@ -36,7 +37,7 @@ func Connect(configs map[string]*Config) {
 			panic("[db] " + strings.Join(errs, "\n"))
 		}
 
-		if _, ok := dbService["default"]; !ok {
+		if _, ok := dbService[Default]; !ok {
 			log.Fatal("[db] the `default` database engine must be configured and enabled")
 		}
 	}()

@@ -62,16 +62,16 @@ func Use(db string) *Wrapper {
 
 //default database Exec
 func Exec(query string, args ...interface{}) (sql.Result, error) {
-	return (&Wrapper{"default"}).Exec(query, args...)
+	return (&Wrapper{Default}).Exec(query, args...)
 }
 
 //default database Queryx
 func Queryx(query string, args ...interface{}) (*sqlx.Rows, error) {
-	return (&Wrapper{"default"}).Queryx(query, args...)
+	return (&Wrapper{Default}).Queryx(query, args...)
 
 }
 
 //default database QueryRowx
 func QueryRowx(query string, args ...interface{}) *sqlx.Row {
-	return (&Wrapper{"default"}).QueryRowx(query, args...)
+	return (&Wrapper{Default}).QueryRowx(query, args...)
 }
