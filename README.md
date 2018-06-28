@@ -11,17 +11,17 @@ Connection database and use sqlx native function,See the https://github.com/jmoi
 import "github.com/ilibs/gosql"
 
 func main(){
-	configs["default"] = &Config{
-		Enable:  true,
-		Driver:  "mysql",
-		Dsn:     "root:123456@tcp(127.0.0.1:3306)/test?charset=utf8&parseTime=True&loc=Asia%2FShanghai",
-		ShowSql: true,
-	}
+    configs["default"] = &gosql.Config{
+        Enable:  true,
+        Driver:  "mysql",
+        Dsn:     "root:123456@tcp(127.0.0.1:3306)/test?charset=utf8&parseTime=True&loc=Asia%2FShanghai",
+        ShowSql: true,
+    }
 
     //connection database
-	gosql.Connect(configs)
+    gosql.Connect(configs)
 
-	gosql.DB().QueryRowx("select * from users where id = 1")
+    gosql.DB().QueryRowx("select * from users where id = 1")
 }
 
 ```
@@ -52,22 +52,22 @@ func (u *Users) PK() string {
 
 //Get
 user := &Users{}
-Model(user).Where("id=1").Get()
+gosql.Model(user).Where("id=1").Get()
 
 //All
 user := make([]*Users,0)
-Model(&user).All()
+gosql.Model(&user).All()
 
 //Create and Timestamp Tracking
-Model(&User{Name:"test",Email:"test@gmail.com"}).Create()
+gosql.Model(&User{Name:"test",Email:"test@gmail.com"}).Create()
 
 //Update
-Model(&User{Name:"test2",Email:"test@gmail.com"}).Where("id=1").Update()
-//If you need to update the null value, you can do so
-Model(&User{Status:0}).Where("id=1").Update("status")
+gosql.Model(&User{Name:"test2",Email:"test@gmail.com"}).Where("id=1").Update()
+//If you need to update the zero value, you can do so
+gosql.Model(&User{Status:0}).Where("id=1").Update("status")
 
 //Delete
-Model(&User{}).Where("id=1").Delete()
+gosql.Model(&User{}).Where("id=1").Delete()
 
 ```
 
