@@ -1,6 +1,7 @@
 package gosql
 
 import (
+	"context"
 	"database/sql"
 	"time"
 
@@ -55,6 +56,25 @@ func (w *Wrapper) QueryRowx(query string, args ...interface{}) (rows *sqlx.Row) 
 	return DB(w.database).QueryRowx(query, args...)
 }
 
+func (w *Wrapper) Tx(ctx context.Context, fn func(ctx context.Context, tx *sqlx.Tx) error) (err error) {
+	db := DB(w.database)
+	tx, err := db.Beginx()
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+		}
+	}()
+
+	err = fn(ctx, tx)
+	if err != nil {
+		err = tx.Commit()
+	}
+	return
+}
+
 //change database
 func Use(db string) *Wrapper {
 	return &Wrapper{db}
@@ -74,4 +94,8 @@ func Queryx(query string, args ...interface{}) (*sqlx.Rows, error) {
 //default database QueryRowx
 func QueryRowx(query string, args ...interface{}) *sqlx.Row {
 	return (&Wrapper{Default}).QueryRowx(query, args...)
+}
+
+func Tx(ctx context.Context, fn func(tx *sqlx.Tx) error) (err error) {
+	return (&Wrapper{Default}).Tx(ctx, fn)
 }
