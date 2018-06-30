@@ -96,6 +96,6 @@ func QueryRowx(query string, args ...interface{}) *sqlx.Row {
 	return (&Wrapper{Default}).QueryRowx(query, args...)
 }
 
-func Tx(ctx context.Context, fn func(tx *sqlx.Tx) error) (err error) {
+func Tx(ctx context.Context, fn func(ctx context.Context,tx *sqlx.Tx) error) (err error) {
 	return (&Wrapper{Default}).Tx(ctx, fn)
 }
