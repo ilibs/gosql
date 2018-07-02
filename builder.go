@@ -92,7 +92,7 @@ func Model(model interface{}) *Builder {
 	}
 
 	if m, ok := model.(IModel); ok {
-		builder.db = DB(m.DbName())
+		builder.db = DB(m.DbName()).Unsafe()
 		builder.table = m.TableName()
 	} else {
 		tp := reflect.Indirect(value).Type()
@@ -101,7 +101,7 @@ func Model(model interface{}) *Builder {
 		}
 
 		if m, ok := reflect.Indirect(reflect.New(tp.Elem())).Interface().(IModel); ok {
-			builder.db = DB(m.DbName())
+			builder.db = DB(m.DbName()).Unsafe()
 			builder.table = m.TableName()
 		} else {
 			log.Fatalf("model argument must implementation IModel interface or slice []IModel and pointer,but get %#v", model)
