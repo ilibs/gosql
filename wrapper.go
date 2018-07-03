@@ -59,6 +59,7 @@ func (w *Wrapper) QueryRowx(query string, args ...interface{}) (rows *sqlx.Row) 
 func (w *Wrapper) Tx(ctx context.Context, fn func(ctx context.Context, tx *sqlx.Tx) error) (err error) {
 	db := DB(w.database)
 	tx, err := db.Beginx()
+	tx = tx.Unsafe()
 	if err != nil {
 		return err
 	}
@@ -96,6 +97,6 @@ func QueryRowx(query string, args ...interface{}) *sqlx.Row {
 	return (&Wrapper{Default}).QueryRowx(query, args...)
 }
 
-func Tx(ctx context.Context, fn func(ctx context.Context,tx *sqlx.Tx) error) (err error) {
+func Tx(ctx context.Context, fn func(ctx context.Context, tx *sqlx.Tx) error) (err error) {
 	return (&Wrapper{Default}).Tx(ctx, fn)
 }

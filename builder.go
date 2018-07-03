@@ -61,11 +61,19 @@ type IBuilder interface {
 	Delete() (int64, error)
 }
 
+type ISqlx interface {
+	QueryRowx(query string, args ...interface{}) *sqlx.Row
+	Get(dest interface{}, query string, args ...interface{}) error
+	Queryx(query string, args ...interface{}) (*sqlx.Rows, error)
+	Select(dest interface{}, query string, args ...interface{}) error
+	Exec(query string, args ...interface{}) (sql.Result, error)
+}
+
 var _ IBuilder = (*Builder)(nil)
 
 type Builder struct {
 	model  interface{}
-	db     *sqlx.DB
+	db     ISqlx
 	table  string
 	sql    string
 	where  string
@@ -77,7 +85,7 @@ type Builder struct {
 	args []interface{}
 }
 
-func Model(model interface{}) *Builder {
+func Model(model interface{},tx ...*sqlx.Tx) *Builder {
 	value := reflect.ValueOf(model)
 	if value.Kind() != reflect.Ptr {
 		log.Fatalf("model argument must pass a pointer, not a value %#v", model)
@@ -92,7 +100,12 @@ func Model(model interface{}) *Builder {
 	}
 
 	if m, ok := model.(IModel); ok {
-		builder.db = DB(m.DbName()).Unsafe()
+		if tx != nil {
+			builder.db = tx[0]
+		}else{
+			builder.db = DB(m.DbName()).Unsafe()
+		}
+
 		builder.table = m.TableName()
 	} else {
 		tp := reflect.Indirect(value).Type()
@@ -101,7 +114,11 @@ func Model(model interface{}) *Builder {
 		}
 
 		if m, ok := reflect.Indirect(reflect.New(tp.Elem())).Interface().(IModel); ok {
-			builder.db = DB(m.DbName()).Unsafe()
+			if tx != nil {
+				builder.db = tx[0]
+			}else{
+				builder.db = DB(m.DbName()).Unsafe()
+			}
 			builder.table = m.TableName()
 		} else {
 			log.Fatalf("model argument must implementation IModel interface or slice []IModel and pointer,but get %#v", model)
