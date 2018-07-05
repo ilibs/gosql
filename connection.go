@@ -14,12 +14,14 @@ var dbService = make(map[string]*sqlx.DB, 0)
 // DB gets the specified database engine,
 // or the default DB if no name is specified.
 func DB(name ...string) *sqlx.DB {
-	if len(name) == 0 {
-		return dbService[Default]
+	dbName := Default
+	if name != nil {
+		dbName = name[0]
 	}
-	engine, ok := dbService[name[0]]
+
+	engine, ok := dbService[dbName]
 	if !ok {
-		log.Fatalf("[db] the database link `%s` is not configured", name[0])
+		log.Fatalf("[db] the database link `%s` is not configured", dbName)
 	}
 	return engine
 }
@@ -35,10 +37,6 @@ func Connect(configs map[string]*Config) {
 	defer func() {
 		if len(errs) > 0 {
 			panic("[db] " + strings.Join(errs, "\n"))
-		}
-
-		if _, ok := dbService[Default]; !ok {
-			log.Fatal("[db] the `default` database engine must be configured and enabled")
 		}
 	}()
 
