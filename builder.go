@@ -73,6 +73,7 @@ var _ IBuilder = (*Builder)(nil)
 
 type Builder struct {
 	model  interface{}
+	tx     *sqlx.Tx
 	db     ISqlx
 	table  string
 	sql    string
@@ -85,7 +86,7 @@ type Builder struct {
 	args []interface{}
 }
 
-func Model(model interface{},tx ...*sqlx.Tx) *Builder {
+func Model(model interface{}, tx ...*sqlx.Tx) *Builder {
 	value := reflect.ValueOf(model)
 	if value.Kind() != reflect.Ptr {
 		log.Fatalf("model argument must pass a pointer, not a value %#v", model)
@@ -95,37 +96,47 @@ func Model(model interface{},tx ...*sqlx.Tx) *Builder {
 		log.Fatalf("model argument cannot be nil pointer passed")
 	}
 
-	builder := &Builder{
-		model: model,
+	var txx *sqlx.Tx
+
+	if tx != nil {
+		txx = tx[0]
 	}
 
-	if m, ok := model.(IModel); ok {
-		if tx != nil {
-			builder.db = tx[0]
-		}else{
-			builder.db = DB(m.DbName()).Unsafe()
-		}
-
-		builder.table = m.TableName()
-	} else {
-		tp := reflect.Indirect(value).Type()
-		if tp.Kind() != reflect.Slice {
-			log.Fatalf("model argument must slice, but get %#v", model)
-		}
-
-		if m, ok := reflect.Indirect(reflect.New(tp.Elem())).Interface().(IModel); ok {
-			if tx != nil {
-				builder.db = tx[0]
-			}else{
-				builder.db = DB(m.DbName()).Unsafe()
-			}
-			builder.table = m.TableName()
-		} else {
-			log.Fatalf("model argument must implementation IModel interface or slice []IModel and pointer,but get %#v", model)
-		}
+	builder := &Builder{
+		model: model,
+		tx:    txx,
 	}
 
 	return builder
+}
+
+func (b *Builder) initModel() {
+	if m, ok := b.model.(IModel); ok {
+		if b.tx != nil {
+			b.db = b.tx
+		} else {
+			b.db = DB(m.DbName()).Unsafe()
+		}
+
+		b.table = m.TableName()
+	} else {
+		value := reflect.ValueOf(b.model)
+		tp := reflect.Indirect(value).Type()
+		if tp.Kind() != reflect.Slice {
+			log.Fatalf("model argument must slice, but get %#v", b.model)
+		}
+
+		if m, ok := reflect.Indirect(reflect.New(tp.Elem())).Interface().(IModel); ok {
+			if b.tx != nil {
+				b.db = b.tx
+			} else {
+				b.db = DB(m.DbName()).Unsafe()
+			}
+			b.table = m.TableName()
+		} else {
+			log.Fatalf("model argument must implementation IModel interface or slice []IModel and pointer,but get %#v", b.model)
+		}
+	}
 }
 
 func (b *Builder) Where(str string, args ...interface{}) IBuilder {
@@ -209,6 +220,8 @@ func (b *Builder) deleteString() string {
 }
 
 func (b *Builder) Get() (err error) {
+	b.initModel()
+
 	query := b.queryString()
 	defer func(start time.Time) {
 		logger.Log(&QueryStatus{
@@ -225,6 +238,8 @@ func (b *Builder) Get() (err error) {
 }
 
 func (b *Builder) All() (err error) {
+	b.initModel()
+
 	query := b.queryString()
 	defer func(start time.Time) {
 		logger.Log(&QueryStatus{
@@ -256,6 +271,8 @@ func (b *Builder) exec(query string, args ...interface{}) (sql.Result, error) {
 }
 
 func (b *Builder) Create() (lastInsertId int64, err error) {
+	b.initModel()
+
 	rv := reflect.Indirect(reflect.ValueOf(b.model))
 	fields := mapper.FieldMap(rv)
 	structAutoTime(fields, AUTO_CREATE_TIME_FIELDS)
@@ -276,6 +293,8 @@ func (b *Builder) Create() (lastInsertId int64, err error) {
 
 //gosql.Model(&User{Status:0}).Where("id = ?",1).Update("status")
 func (b *Builder) Update(zeroValues ...string) (affected int64, err error) {
+	b.initModel()
+
 	uv := reflect.Indirect(reflect.ValueOf(b.model))
 	fields := mapper.FieldMap(uv)
 	structAutoTime(fields, AUTO_UPDATE_TIME_FIELDS)
@@ -297,6 +316,8 @@ func (b *Builder) Update(zeroValues ...string) (affected int64, err error) {
 
 //gosql.Model(&User{}).Delete()
 func (b *Builder) Delete() (affected int64, err error) {
+	b.initModel()
+
 	query := b.deleteString()
 	result, err := b.exec(query, b.args...)
 	if err != nil {
@@ -308,6 +329,8 @@ func (b *Builder) Delete() (affected int64, err error) {
 
 //gosql.Model(&User{}).Where("status = 0").Count()
 func (b *Builder) Count() (num int64, err error) {
+	b.initModel()
+
 	var id int
 	query := b.countString()
 
