@@ -60,6 +60,11 @@ func Connect(configs map[string]*Config) {
 		sess.SetMaxOpenConns(conf.MaxOpenConns)
 		sess.SetMaxIdleConns(conf.MaxIdleConns)
 
-		dbService[key] = sess
+		if db, ok := dbService[key]; ok {
+			dbService[key] = sess
+			db.Close()
+		} else {
+			dbService[key] = sess
+		}
 	}
 }
