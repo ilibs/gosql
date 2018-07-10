@@ -82,7 +82,7 @@ func TestBuilder_Get(t *testing.T) {
 	})
 }
 
-func json_encode(i interface{}) string {
+func jsonEncode(i interface{}) string {
 	ret, _ := json.Marshal(i)
 	return string(ret)
 }
@@ -99,7 +99,7 @@ func TestBuilder_All(t *testing.T) {
 			t.Error(err)
 		}
 
-		fmt.Println(json_encode(user))
+		fmt.Println(jsonEncode(user))
 	})
 }
 

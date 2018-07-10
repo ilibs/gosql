@@ -15,6 +15,7 @@ import (
 
 var (
 	mapper                  = reflectx.NewMapper("db")
+	//Insert database automatically updates fields
 	AUTO_CREATE_TIME_FIELDS = []string{
 		"create_time",
 		"create_at",
@@ -23,6 +24,7 @@ var (
 		"update_at",
 		"updated_at",
 	}
+	//Update database automatically updates fields
 	AUTO_UPDATE_TIME_FIELDS = []string{
 		"update_time",
 		"update_at",
@@ -32,6 +34,7 @@ var (
 	logger = &defaultLogger{}
 )
 
+//Model interface
 type IModel interface {
 	TableName() string
 	DbName() string

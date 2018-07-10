@@ -4,10 +4,11 @@ import (
 	"log"
 	"strings"
 
-	_ "github.com/go-sql-driver/mysql"
+	_ "github.com/go-sql-driver/mysql" //mysql driver
 	"github.com/jmoiron/sqlx"
 )
 
+//default database tag name
 var Default = "default"
 var dbService = make(map[string]*sqlx.DB, 0)
 
@@ -31,6 +32,7 @@ func List() map[string]*sqlx.DB {
 	return dbService
 }
 
+//Connect database
 func Connect(configs map[string]*Config) {
 
 	var errs []string

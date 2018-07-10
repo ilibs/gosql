@@ -1,5 +1,6 @@
 package gosql
 
+//Config is database connection configuration
 type Config struct {
 	Enable       bool   `json:"enable"`
 	Driver       string `json:"driver"`
