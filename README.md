@@ -50,6 +50,14 @@ for rows.Next() {
 user := &Users{}
 err := gosql.QueryRowx("select * from users where id = 1").StructScan(user)
 
+//Get
+user := &Users{}
+err := gosql.Get(user,"select * from users where id = 1")
+
+//Select
+users := make([]*Users)
+err := gosql.Select(&users,"select * from users")
+
 //Change database
 db := gosql.Use("test")
 db.Queryx("select * from tests")
