@@ -56,7 +56,6 @@ func (w *Wrapper) QueryRowx(query string, args ...interface{}) (rows *sqlx.Row) 
 	return DB(w.database).QueryRowx(query, args...)
 }
 
-
 func (w *Wrapper) Get(dest interface{}, query string, args ...interface{}) (err error) {
 	defer func(start time.Time) {
 		logger.Log(&QueryStatus{
@@ -118,7 +117,6 @@ func Exec(query string, args ...interface{}) (sql.Result, error) {
 //default database Queryx
 func Queryx(query string, args ...interface{}) (*sqlx.Rows, error) {
 	return (&Wrapper{Default}).Queryx(query, args...)
-
 }
 
 //default database QueryRowx
