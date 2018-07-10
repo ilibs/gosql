@@ -132,7 +132,7 @@ gosql.Tx(func(tx *sqlx.Tx) error {
 })
 ```
 
-> If you need to invoke context, you can use `gosql.txx`
+> If you need to invoke context, you can use `gosql.Txx`
 
 ## Timestamp Tracking
 If your fields contain the following field names, they will be updated automatically
