@@ -14,7 +14,7 @@ import (
 )
 
 var (
-	mapper                  = reflectx.NewMapper("db")
+	mapper = reflectx.NewMapper("db")
 	//Insert database automatically updates fields
 	AUTO_CREATE_TIME_FIELDS = []string{
 		"create_time",
@@ -301,8 +301,7 @@ func (b *Builder) Update(zeroValues ...string) (affected int64, err error) {
 	uv := reflect.Indirect(reflect.ValueOf(b.model))
 	fields := mapper.FieldMap(uv)
 	structAutoTime(fields, AUTO_UPDATE_TIME_FIELDS)
-	m := structToMap(fields)
-	m = zeroValueFilter(fields, zeroValues)
+	m := zeroValueFilter(fields, zeroValues)
 
 	query := b.updateString(m)
 	args := append(sortedMap(m), b.args...)

@@ -8,7 +8,7 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-//default database tag name
+//Default set database default tag name
 var Default = "default"
 var dbService = make(map[string]*sqlx.DB, 0)
 

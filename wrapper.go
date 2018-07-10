@@ -151,7 +151,7 @@ func QueryRowx(query string, args ...interface{}) *sqlx.Row {
 	return (&Wrapper{Default}).QueryRowx(query, args...)
 }
 
-//Tx default database the transaction with context
+//Txx default database the transaction with context
 func Txx(ctx context.Context, fn func(ctx context.Context, tx *sqlx.Tx) error) error {
 	return (&Wrapper{Default}).Txx(ctx, fn)
 }
