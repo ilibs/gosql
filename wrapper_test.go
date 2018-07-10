@@ -1,6 +1,7 @@
 package gosql
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"strconv"
@@ -178,6 +179,42 @@ func TestTx(t *testing.T) {
 
 		if num != 9 {
 			t.Error("transaction create failed")
+		}
+	})
+}
+
+func TestTxx(t *testing.T) {
+	RunWithSchema(t, func(t *testing.T) {
+
+		ctx, cancel := context.WithCancel(context.Background())
+
+		Txx(ctx, func(ctx context.Context, tx *sqlx.Tx) error {
+			for id := 1; id < 10; id++ {
+				user := &Users{
+					Id:    id,
+					Name:  "test" + strconv.Itoa(id),
+					Email: "test" + strconv.Itoa(id) + "@test.com",
+				}
+
+				Model(user, tx).Create()
+
+				if id == 8 {
+					cancel()
+					break
+				}
+			}
+
+			return nil
+		})
+
+		num, err := Model(&Users{}).Count()
+
+		if err != nil {
+			t.Error(err)
+		}
+
+		if num != 0 {
+			t.Error("transaction abort failed")
 		}
 	})
 }
