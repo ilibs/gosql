@@ -85,7 +85,7 @@ func TestGet(t *testing.T) {
 			t.Error(err)
 		}
 
-		fmt.Println(json_encode(user))
+		fmt.Println(jsonEncode(user))
 	})
 }
 
@@ -101,6 +101,6 @@ func TestSelect(t *testing.T) {
 			t.Error(err)
 		}
 
-		fmt.Println(json_encode(user))
+		fmt.Println(jsonEncode(user))
 	})
 }
