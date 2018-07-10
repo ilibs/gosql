@@ -232,16 +232,3 @@ func TestBuilder_Where(t *testing.T) {
 		//fmt.Println(user)
 	})
 }
-
-func TestMapper(t *testing.T) {
-	RunWithSchema(t, func(t *testing.T) {
-		insert(1)
-
-		for i := 0; i < 10; i++ {
-			user := &Users{Name: "test2" + strconv.Itoa(i)}
-			Model(user).Where("id = 1").Update()
-		}
-		//fmt.Println(user)
-	})
-
-}

@@ -104,7 +104,7 @@ func (w *Wrapper) Txx(ctx context.Context, fn func(ctx context.Context, tx *sqlx
 	}()
 
 	err = fn(ctx, tx)
-	if err != nil {
+	if err == nil {
 		err = tx.Commit()
 	}
 	return
@@ -125,7 +125,7 @@ func (w *Wrapper) Tx(fn func(tx *sqlx.Tx) error) (err error) {
 	}()
 
 	err = fn(tx)
-	if err != nil {
+	if err == nil {
 		err = tx.Commit()
 	}
 	return

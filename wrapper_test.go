@@ -1,9 +1,13 @@
 package gosql
 
 import (
+	"errors"
 	"fmt"
+	"strconv"
 	"testing"
 	"time"
+
+	"github.com/jmoiron/sqlx"
 )
 
 func TestExec(t *testing.T) {
@@ -119,5 +123,61 @@ func TestSelect(t *testing.T) {
 		}
 
 		fmt.Println(jsonEncode(user))
+	})
+}
+
+func TestTx(t *testing.T) {
+	RunWithSchema(t, func(t *testing.T) {
+		Tx(func(tx *sqlx.Tx) error {
+			for id := 1; id < 10; id++ {
+				user := &Users{
+					Id:    id,
+					Name:  "test" + strconv.Itoa(id),
+					Email: "test" + strconv.Itoa(id) + "@test.com",
+				}
+
+				Model(user, tx).Create()
+
+				if id == 8 {
+					return errors.New("simulation terminated")
+				}
+			}
+
+			return nil
+		})
+
+		num, err := Model(&Users{}).Count()
+
+		if err != nil {
+			t.Error(err)
+		}
+
+		if num != 0 {
+			t.Error("transaction abort failed")
+		}
+
+		Tx(func(tx *sqlx.Tx) error {
+			for id := 1; id < 10; id++ {
+				user := &Users{
+					Id:    id,
+					Name:  "test" + strconv.Itoa(id),
+					Email: "test" + strconv.Itoa(id) + "@test.com",
+				}
+
+				Model(user, tx).Create()
+			}
+
+			return nil
+		})
+
+		num, err = Model(&Users{}).Count()
+
+		if err != nil {
+			t.Error(err)
+		}
+
+		if num != 9 {
+			t.Error("transaction create failed")
+		}
 	})
 }
