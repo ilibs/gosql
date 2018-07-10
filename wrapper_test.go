@@ -44,6 +44,23 @@ func TestQueryx(t *testing.T) {
 				t.Error(err)
 			}
 		}
+
+		rows, err = Queryx("select name from users")
+
+		if err != nil {
+			t.Error(err)
+		}
+
+		for rows.Next() {
+			//results := make(map[string]interface{})
+			//err = rows.MapScan(results)
+			var name string
+			err = rows.Scan(&name)
+			if err != nil {
+				t.Error(err)
+			}
+			fmt.Println(name)
+		}
 	})
 }
 
