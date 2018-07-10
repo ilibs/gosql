@@ -89,8 +89,29 @@ func (w *Wrapper) Select(dest interface{}, query string, args ...interface{}) (e
 	return DB(w.database).Select(dest, query, args...)
 }
 
+//Txx the transaction with context
+func (w *Wrapper) Txx(ctx context.Context, fn func(ctx context.Context, tx *sqlx.Tx) error) (err error) {
+	db := DB(w.database)
+	tx, err := db.BeginTxx(ctx, nil)
+	tx = tx.Unsafe()
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err != nil {
+			tx.Rollback()
+		}
+	}()
+
+	err = fn(ctx, tx)
+	if err != nil {
+		err = tx.Commit()
+	}
+	return
+}
+
 //Tx the transaction
-func (w *Wrapper) Tx(ctx context.Context, fn func(ctx context.Context, tx *sqlx.Tx) error) (err error) {
+func (w *Wrapper) Tx(fn func(tx *sqlx.Tx) error) (err error) {
 	db := DB(w.database)
 	tx, err := db.Beginx()
 	tx = tx.Unsafe()
@@ -103,7 +124,7 @@ func (w *Wrapper) Tx(ctx context.Context, fn func(ctx context.Context, tx *sqlx.
 		}
 	}()
 
-	err = fn(ctx, tx)
+	err = fn(tx)
 	if err != nil {
 		err = tx.Commit()
 	}
@@ -130,9 +151,14 @@ func QueryRowx(query string, args ...interface{}) *sqlx.Row {
 	return (&Wrapper{Default}).QueryRowx(query, args...)
 }
 
+//Tx default database the transaction with context
+func Txx(ctx context.Context, fn func(ctx context.Context, tx *sqlx.Tx) error) error {
+	return (&Wrapper{Default}).Txx(ctx, fn)
+}
+
 //Tx default database the transaction
-func Tx(ctx context.Context, fn func(ctx context.Context, tx *sqlx.Tx) error) error {
-	return (&Wrapper{Default}).Tx(ctx, fn)
+func Tx(fn func(tx *sqlx.Tx) error) error {
+	return (&Wrapper{Default}).Tx(fn)
 }
 
 //Get default database
