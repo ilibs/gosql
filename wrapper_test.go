@@ -1,6 +1,7 @@
 package gosql
 
 import (
+	"fmt"
 	"testing"
 	"time"
 )
@@ -70,5 +71,36 @@ func TestUse(t *testing.T) {
 		if err != nil {
 			t.Error(err)
 		}
+	})
+}
+
+func TestGet(t *testing.T) {
+	RunWithSchema(t, func(t *testing.T) {
+		insert(1)
+		db := Use("default")
+		user := &Users{}
+		err := db.Get(user, "select * from users where id = ?", 1)
+
+		if err != nil {
+			t.Error(err)
+		}
+
+		fmt.Println(json_encode(user))
+	})
+}
+
+func TestSelect(t *testing.T) {
+	RunWithSchema(t, func(t *testing.T) {
+		insert(1)
+		insert(2)
+		db := Use("default")
+		user := make([]*Users, 0)
+		err := db.Select(&user, "select * from users")
+
+		if err != nil {
+			t.Error(err)
+		}
+
+		fmt.Println(json_encode(user))
 	})
 }

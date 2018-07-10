@@ -56,6 +56,35 @@ func (w *Wrapper) QueryRowx(query string, args ...interface{}) (rows *sqlx.Row) 
 	return DB(w.database).QueryRowx(query, args...)
 }
 
+
+func (w *Wrapper) Get(dest interface{}, query string, args ...interface{}) (err error) {
+	defer func(start time.Time) {
+		logger.Log(&QueryStatus{
+			Query: query,
+			Args:  args,
+			Err:   err,
+			Start: start,
+			End:   time.Now(),
+		})
+	}(time.Now())
+
+	return DB(w.database).Get(dest, query, args...)
+}
+
+func (w *Wrapper) Select(dest interface{}, query string, args ...interface{}) (err error) {
+	defer func(start time.Time) {
+		logger.Log(&QueryStatus{
+			Query: query,
+			Args:  args,
+			Err:   err,
+			Start: start,
+			End:   time.Now(),
+		})
+	}(time.Now())
+
+	return DB(w.database).Select(dest, query, args...)
+}
+
 func (w *Wrapper) Tx(ctx context.Context, fn func(ctx context.Context, tx *sqlx.Tx) error) (err error) {
 	db := DB(w.database)
 	tx, err := db.Beginx()
@@ -97,6 +126,16 @@ func QueryRowx(query string, args ...interface{}) *sqlx.Row {
 	return (&Wrapper{Default}).QueryRowx(query, args...)
 }
 
-func Tx(ctx context.Context, fn func(ctx context.Context, tx *sqlx.Tx) error) (err error) {
+func Tx(ctx context.Context, fn func(ctx context.Context, tx *sqlx.Tx) error) error {
 	return (&Wrapper{Default}).Tx(ctx, fn)
+}
+
+//default database Get
+func Get(dest interface{}, query string, args ...interface{}) error {
+	return (&Wrapper{Default}).Get(dest, query, args...)
+}
+
+//default database Select
+func Select(dest interface{}, query string, args ...interface{}) error {
+	return (&Wrapper{Default}).Select(dest, query, args...)
 }
