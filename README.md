@@ -108,6 +108,32 @@ gosql.Model(&User{}).Where("id=1").Delete()
 
 ```
 
+
+## Transaction
+The `Tx` function has a callback function, if an error is returned, the transaction rollback
+
+```go
+gosql.Tx(func(tx *sqlx.Tx) error {
+    for id := 1; id < 10; id++ {
+        user := &Users{
+            Id:    id,
+            Name:  "test" + strconv.Itoa(id),
+            Email: "test" + strconv.Itoa(id) + "@test.com",
+        }
+
+        Model(user, tx).Create()
+
+        if id == 8 {
+            return errors.New("interrupt the transaction")
+        }
+    }
+
+    return nil
+})
+```
+
+> If you need to invoke context, you can use `gosql.txx`
+
 ## Timestamp Tracking
 If your fields contain the following field names, they will be updated automatically
 
