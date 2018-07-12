@@ -153,6 +153,38 @@ AUTO_UPDATE_TIME_FIELDS = []string{
 }
 ```
 
+
+## Using Map
+`Create` `Update` `Delete` `Count` support `map[string]interface`,For example:
+```go
+//Create
+gosql.Table("users").Create(map[string]interface{}{
+    "id":         id,
+    "name":       "test" + strconv.Itoa(int(id)),
+    "email":      "test@test.com",
+    "created_at": "2018-07-11 11:58:21",
+    "updated_at": "2018-07-11 11:58:21",
+})
+
+//Update
+gosql.Table("users").Where("id = :id", map[string]interface{}{"id": 1}).Update(map[string]interface{}{
+    "name":  "fifsky",
+    "email": "fifsky@test.com",
+})
+
+//Delete
+gosql.Table("users").Where("id = :id", map[string]interface{}{"id": id}).Delete()
+
+//Count
+gosql.Table("users").Where("id = :id", map[string]interface{}{"id": id}).Count()
+
+//Change database
+gosql.Use("db2").Table("users").Where("id = :id", map[string]interface{}{"id": id}).Count()
+
+//Transaction `tx` is *sqlx.Tx
+gosql.Table("users",tx).Where("id = :id", map[string]interface{}{"id": id}).Count()
+```
+
 ## Thanks
 
 sqlx https://github.com/jmoiron/sqlx

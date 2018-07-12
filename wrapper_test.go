@@ -100,14 +100,16 @@ func TestGet(t *testing.T) {
 	RunWithSchema(t, func(t *testing.T) {
 		insert(1)
 		db := Use("default")
-		user := &Users{}
-		err := db.Get(user, "select * from users where id = ?", 1)
+		{
+			user := &Users{}
+			err := db.Get(user, "select * from users where id = ?", 1)
 
-		if err != nil {
-			t.Error(err)
+			if err != nil {
+				t.Error(err)
+			}
+
+			fmt.Println(jsonEncode(user))
 		}
-
-		fmt.Println(jsonEncode(user))
 	})
 }
 

@@ -22,7 +22,7 @@ var (
 // QueryStatus represents the status of a query after being executed.
 type QueryStatus struct {
 	Query string
-	Args  []interface{}
+	Args  interface{}
 
 	Start time.Time
 	End   time.Time
@@ -40,7 +40,7 @@ func (q *QueryStatus) String() string {
 		lines = append(lines, fmt.Sprintf(fmtLogQuery, query))
 	}
 
-	if len(q.Args) > 0 {
+	if q.Args != nil {
 		lines = append(lines, fmt.Sprintf(fmtLogArgs, q.Args))
 	}
 

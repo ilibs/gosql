@@ -105,12 +105,10 @@ func Model(model interface{}, tx ...*sqlx.Tx) *Builder {
 		txx = tx[0]
 	}
 
-	builder := &Builder{
+	return &Builder{
 		model: model,
 		tx:    txx,
 	}
-
-	return builder
 }
 
 func (b *Builder) initModel() {
@@ -176,6 +174,7 @@ func (b *Builder) OrderBy(str string) IBuilder {
 	return b
 }
 
+//queryString Assemble the query statement
 func (b *Builder) queryString() string {
 	b.sql = fmt.Sprintf("SELECT * FROM %s %s %s %s %s", b.table, b.where, b.order, b.limit, b.offset)
 	b.sql = strings.TrimRight(b.sql, " ")
@@ -184,6 +183,7 @@ func (b *Builder) queryString() string {
 	return b.sql
 }
 
+//countString Assemble the count statement
 func (b *Builder) countString() string {
 	b.sql = fmt.Sprintf("SELECT count(*) FROM %s %s", b.table, b.where)
 	b.sql = strings.TrimRight(b.sql, " ")
@@ -192,6 +192,7 @@ func (b *Builder) countString() string {
 	return b.sql
 }
 
+//insertString Assemble the insert statement
 func (b *Builder) insertString(params map[string]interface{}) string {
 	var cols, vals []string
 	for _, k := range sortedParamKeys(params) {
@@ -203,6 +204,7 @@ func (b *Builder) insertString(params map[string]interface{}) string {
 	return b.sql
 }
 
+//updateString Assemble the update statement
 func (b *Builder) updateString(params map[string]interface{}) string {
 	var updateFields []string
 	for _, k := range sortedParamKeys(params) {
@@ -215,6 +217,7 @@ func (b *Builder) updateString(params map[string]interface{}) string {
 	return b.sql
 }
 
+//deleteString Assemble the delete statement
 func (b *Builder) deleteString() string {
 	b.sql = fmt.Sprintf("DELETE FROM %s %s", b.table, b.where)
 	b.sql = strings.TrimRight(b.sql, " ")
@@ -333,7 +336,6 @@ func (b *Builder) Delete() (affected int64, err error) {
 func (b *Builder) Count() (num int64, err error) {
 	b.initModel()
 
-	var id int
 	query := b.countString()
 
 	defer func(start time.Time) {
@@ -345,9 +347,8 @@ func (b *Builder) Count() (num int64, err error) {
 			End:   time.Now(),
 		})
 	}(time.Now())
-	err = b.db.Get(&id, query, b.args...)
-
-	return int64(id), err
+	err = b.db.Get(&num, query, b.args...)
+	return num, err
 }
 
 func inSlice(k string, s []string) bool {
