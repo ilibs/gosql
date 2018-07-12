@@ -16,7 +16,7 @@ Connection database and use sqlx native function,See the https://github.com/jmoi
 import "github.com/ilibs/gosql"
 
 func main(){
-	configs := make(map[string]*Config)
+    configs := make(map[string]*Config)
 
     configs["default"] = &gosql.Config{
         Enable:  true,
