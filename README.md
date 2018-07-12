@@ -159,30 +159,30 @@ AUTO_UPDATE_TIME_FIELDS = []string{
 ```go
 //Create
 gosql.Table("users").Create(map[string]interface{}{
-    "id":         id,
-    "name":       "test" + strconv.Itoa(int(id)),
+    "id":         1,
+    "name":       "test",
     "email":      "test@test.com",
     "created_at": "2018-07-11 11:58:21",
     "updated_at": "2018-07-11 11:58:21",
 })
 
 //Update
-gosql.Table("users").Where("id = ?", id).Update(map[string]interface{}{
+gosql.Table("users").Where("id = ?", 1).Update(map[string]interface{}{
     "name":  "fifsky",
     "email": "fifsky@test.com",
 })
 
 //Delete
-gosql.Table("users").Where("id = ?", id).Delete()
+gosql.Table("users").Where("id = ?", 1).Delete()
 
 //Count
-gosql.Table("users").Where("id = ?", id).Count()
+gosql.Table("users").Where("id = ?", 1).Count()
 
 //Change database
-gosql.Use("db2").Table("users").Where("id = ?", id).Count()
+gosql.Use("db2").Table("users").Where("id = ?", 1).Count()
 
 //Transaction `tx` is *sqlx.Tx
-gosql.Table("users",tx).Where("id = ?", id}).Count()
+gosql.Table("users",tx).Where("id = ?", 1}).Count()
 ```
 
 ## Thanks
