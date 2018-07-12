@@ -121,11 +121,19 @@ gosql.Tx(func(tx *sqlx.Tx) error {
             Email: "test" + strconv.Itoa(id) + "@test.com",
         }
 
-        Model(user, tx).Create()
+        gosql.Model(user, tx).Create()
 
         if id == 8 {
             return errors.New("interrupt the transaction")
         }
+    }
+
+    //query with transaction
+    var num int
+    err := gosql.WithTx(tx).QueryRowx("select count(*) from user_id = 1").Scan(&num)
+
+    if err != nil {
+        return err
     }
 
     return nil

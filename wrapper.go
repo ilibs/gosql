@@ -147,14 +147,20 @@ func (w *Wrapper) Tx(fn func(tx *sqlx.Tx) error) (err error) {
 	return
 }
 
-//Table new Mapper in Use database
+//Table database handler from to table name
+//for example gosql.Use("db2").Table("users")
 func (w *Wrapper) Table(t string) *Mapper {
-	return &Mapper{database: w.database, SQLBuilder: SQLBuilder{table: t}}
+	return Table(t, w.tx)
 }
 
 //Use is change database
 func Use(db string) *Wrapper {
 	return &Wrapper{database: db}
+}
+
+//WithTx use the specified transaction session
+func WithTx(tx *sqlx.Tx) *Wrapper {
+	return &Wrapper{tx: tx}
 }
 
 //Exec default database

@@ -131,56 +131,91 @@ func TestSelect(t *testing.T) {
 
 func TestTx(t *testing.T) {
 	RunWithSchema(t, func(t *testing.T) {
-		Tx(func(tx *sqlx.Tx) error {
-			for id := 1; id < 10; id++ {
-				user := &Users{
-					Id:    id,
-					Name:  "test" + strconv.Itoa(id),
-					Email: "test" + strconv.Itoa(id) + "@test.com",
+		//1
+		{
+			Tx(func(tx *sqlx.Tx) error {
+				for id := 1; id < 10; id++ {
+					user := &Users{
+						Id:    id,
+						Name:  "test" + strconv.Itoa(id),
+						Email: "test" + strconv.Itoa(id) + "@test.com",
+					}
+
+					Model(user, tx).Create()
+
+					if id == 8 {
+						return errors.New("simulation terminated")
+					}
 				}
 
-				Model(user, tx).Create()
+				return nil
+			})
 
-				if id == 8 {
-					return errors.New("simulation terminated")
-				}
+			num, err := Model(&Users{}).Count()
+
+			if err != nil {
+				t.Error(err)
 			}
 
-			return nil
-		})
-
-		num, err := Model(&Users{}).Count()
-
-		if err != nil {
-			t.Error(err)
+			if num != 0 {
+				t.Error("transaction abort failed")
+			}
 		}
 
-		if num != 0 {
-			t.Error("transaction abort failed")
-		}
+		//2
+		{
+			Tx(func(tx *sqlx.Tx) error {
+				for id := 1; id < 10; id++ {
+					user := &Users{
+						Id:    id,
+						Name:  "test" + strconv.Itoa(id),
+						Email: "test" + strconv.Itoa(id) + "@test.com",
+					}
 
-		Tx(func(tx *sqlx.Tx) error {
-			for id := 1; id < 10; id++ {
-				user := &Users{
-					Id:    id,
-					Name:  "test" + strconv.Itoa(id),
-					Email: "test" + strconv.Itoa(id) + "@test.com",
+					Model(user, tx).Create()
 				}
 
-				Model(user, tx).Create()
+				return nil
+			})
+
+			num, err := Model(&Users{}).Count()
+
+			if err != nil {
+				t.Error(err)
 			}
 
-			return nil
-		})
-
-		num, err = Model(&Users{}).Count()
-
-		if err != nil {
-			t.Error(err)
+			if num != 9 {
+				t.Error("transaction create failed")
+			}
 		}
+	})
+}
 
-		if num != 9 {
-			t.Error("transaction create failed")
+func TestWithTx(t *testing.T) {
+	RunWithSchema(t, func(t *testing.T) {
+		{
+			Tx(func(tx *sqlx.Tx) error {
+				for id := 1; id < 10; id++ {
+					_, err := WithTx(tx).Exec("INSERT INTO users(id,name,email,created_at,updated_at) VALUES(?,?,?,?,?)", id, "test"+strconv.Itoa(id), "", time.Now(), time.Now())
+					if err != nil {
+						return err
+					}
+				}
+
+				var num int
+				err := WithTx(tx).QueryRowx("select count(*) from users").Scan(&num)
+
+				if err != nil {
+					return err
+				}
+
+				if num != 9 {
+					t.Error("with transaction create failed")
+				}
+
+				return nil
+			})
+
 		}
 	})
 }
