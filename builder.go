@@ -1,11 +1,9 @@
 package gosql
 
 import (
-	"database/sql"
 	"log"
 	"reflect"
 	"strconv"
-	"time"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/jmoiron/sqlx/reflectx"
@@ -39,14 +37,6 @@ type IModel interface {
 	PK() string
 }
 
-type ISqlx interface {
-	QueryRowx(query string, args ...interface{}) *sqlx.Row
-	Get(dest interface{}, query string, args ...interface{}) error
-	Queryx(query string, args ...interface{}) (*sqlx.Rows, error)
-	Select(dest interface{}, query string, args ...interface{}) error
-	Exec(query string, args ...interface{}) (sql.Result, error)
-}
-
 type Builder struct {
 	model    interface{}
 	tx       *sqlx.Tx
@@ -54,6 +44,7 @@ type Builder struct {
 	SQLBuilder
 }
 
+// Model construct SQL from Struct
 func Model(model interface{}, tx ...*sqlx.Tx) *Builder {
 	value := reflect.ValueOf(model)
 	if value.Kind() != reflect.Ptr {
@@ -77,11 +68,10 @@ func Model(model interface{}, tx ...*sqlx.Tx) *Builder {
 }
 
 func (b *Builder) db() ISqlx {
-	if b.tx != nil {
-		return b.tx.Unsafe()
+	return &Wrapper{
+		database: b.database,
+		tx:       b.tx,
 	}
-
-	return DB(b.database).Unsafe()
 }
 
 func (b *Builder) initModel() {
@@ -89,8 +79,7 @@ func (b *Builder) initModel() {
 		b.database = m.DbName()
 		b.table = m.TableName()
 	} else {
-		value := reflect.ValueOf(b.model)
-		tp := reflect.Indirect(value).Type()
+		tp := reflect.Indirect(reflect.ValueOf(b.model)).Type()
 		if tp.Kind() != reflect.Slice {
 			log.Fatalf("model argument must slice, but get %#v", b.model)
 		}
@@ -104,62 +93,43 @@ func (b *Builder) initModel() {
 	}
 }
 
+//Where for example Where("id = ? and name = ?",1,"test")
 func (b *Builder) Where(str string, args ...interface{}) *Builder {
 	b.SQLBuilder.Where(str, args...)
 	return b
 }
 
+//Limit
 func (b *Builder) Limit(i int) *Builder {
 	b.limit = strconv.Itoa(i)
 	return b
 }
 
+//Offset
 func (b *Builder) Offset(i int) *Builder {
 	b.offset = strconv.Itoa(i)
 	return b
 }
 
+//OrderBy for example "id desc"
 func (b *Builder) OrderBy(str string) *Builder {
 	b.order = str
 	return b
 }
 
+//All get data row from to Struct
 func (b *Builder) Get() (err error) {
 	b.initModel()
-
-	query := b.queryString()
-	defer func(start time.Time) {
-		logger.Log(&QueryStatus{
-			Query: query,
-			Args:  b.args,
-			Err:   err,
-			Start: start,
-			End:   time.Now(),
-		})
-	}(time.Now())
-
-	err = b.db().QueryRowx(query, b.args...).StructScan(b.model)
-	return err
+	return b.db().QueryRowx(b.queryString(), b.args...).StructScan(b.model)
 }
 
+//All get data rows from to Struct
 func (b *Builder) All() (err error) {
 	b.initModel()
-
-	query := b.queryString()
-	defer func(start time.Time) {
-		logger.Log(&QueryStatus{
-			Query: b.queryString(),
-			Args:  b.args,
-			Err:   err,
-			Start: start,
-			End:   time.Now(),
-		})
-	}(time.Now())
-
-	err = b.db().Select(b.model, query, b.args...)
-	return err
+	return b.db().Select(b.model, b.queryString(), b.args...)
 }
 
+//Create data from to Struct
 func (b *Builder) Create() (lastInsertId int64, err error) {
 	b.initModel()
 
@@ -168,16 +138,13 @@ func (b *Builder) Create() (lastInsertId int64, err error) {
 	structAutoTime(fields, AUTO_CREATE_TIME_FIELDS)
 	m := structToMap(fields)
 
-	query := b.insertString(m)
-	result, err := exec(b.db(), query, b.args...)
+	result, err := exec(b.db(), b.insertString(m), b.args...)
 
 	if err != nil {
 		return 0, err
 	}
 
-	lastInsertId, err = result.LastInsertId()
-
-	return lastInsertId, err
+	return result.LastInsertId()
 }
 
 //gosql.Model(&User{Status:0}).Where("id = ?",1).Update("status")
@@ -189,46 +156,28 @@ func (b *Builder) Update(zeroValues ...string) (affected int64, err error) {
 	structAutoTime(fields, AUTO_UPDATE_TIME_FIELDS)
 	m := zeroValueFilter(fields, zeroValues)
 
-	query := b.updateString(m)
-	result, err := exec(b.db(), query, b.args...)
+	result, err := exec(b.db(), b.updateString(m), b.args...)
 
 	if err != nil {
 		return 0, err
 	}
 
-	affected, err = result.RowsAffected()
-
-	return affected, err
+	return result.RowsAffected()
 }
 
 //gosql.Model(&User{}).Delete()
 func (b *Builder) Delete() (affected int64, err error) {
 	b.initModel()
-
-	query := b.deleteString()
-	result, err := exec(b.db(), query, b.args...)
+	result, err := exec(b.db(), b.deleteString(), b.args...)
 	if err != nil {
 		return 0, err
 	}
-	affected, err = result.RowsAffected()
-	return affected, err
+	return result.RowsAffected()
 }
 
 //gosql.Model(&User{}).Where("status = 0").Count()
 func (b *Builder) Count() (num int64, err error) {
 	b.initModel()
-
-	query := b.countString()
-
-	defer func(start time.Time) {
-		logger.Log(&QueryStatus{
-			Query: query,
-			Args:  b.args,
-			Err:   err,
-			Start: start,
-			End:   time.Now(),
-		})
-	}(time.Now())
-	err = b.db().Get(&num, query, b.args...)
+	err = b.db().Get(&num, b.countString(), b.args...)
 	return num, err
 }

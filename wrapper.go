@@ -8,8 +8,25 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
+type ISqlx interface {
+	Queryx(query string, args ...interface{}) (*sqlx.Rows, error)
+	QueryRowx(query string, args ...interface{}) *sqlx.Row
+	Get(dest interface{}, query string, args ...interface{}) error
+	Select(dest interface{}, query string, args ...interface{}) error
+	Exec(query string, args ...interface{}) (sql.Result, error)
+}
+
 type Wrapper struct {
 	database string
+	tx       *sqlx.Tx
+}
+
+func (w *Wrapper) db() ISqlx {
+	if w.tx != nil {
+		return w.tx.Unsafe()
+	}
+
+	return DB(w.database).Unsafe()
 }
 
 //Exec wrapper sqlx.Exec
@@ -25,7 +42,7 @@ func (w *Wrapper) Exec(query string, args ...interface{}) (result sql.Result, er
 
 	}(time.Now())
 
-	return DB(w.database).Exec(query, args...)
+	return w.db().Exec(query, args...)
 }
 
 //Queryx wrapper sqlx.Queryx
@@ -40,8 +57,7 @@ func (w *Wrapper) Queryx(query string, args ...interface{}) (rows *sqlx.Rows, er
 		})
 	}(time.Now())
 
-	return DB(w.database).Queryx(query, args...)
-
+	return w.db().Queryx(query, args...)
 }
 
 //QueryRowx wrapper sqlx.QueryRowx
@@ -56,7 +72,7 @@ func (w *Wrapper) QueryRowx(query string, args ...interface{}) (rows *sqlx.Row) 
 		})
 	}(time.Now())
 
-	return DB(w.database).QueryRowx(query, args...)
+	return w.db().QueryRowx(query, args...)
 }
 
 //Get wrapper sqlx.Get
@@ -71,7 +87,7 @@ func (w *Wrapper) Get(dest interface{}, query string, args ...interface{}) (err 
 		})
 	}(time.Now())
 
-	return DB(w.database).Get(dest, query, args...)
+	return w.db().Get(dest, query, args...)
 }
 
 //Select wrapper sqlx.Select
@@ -86,7 +102,7 @@ func (w *Wrapper) Select(dest interface{}, query string, args ...interface{}) (e
 		})
 	}(time.Now())
 
-	return DB(w.database).Select(dest, query, args...)
+	return w.db().Select(dest, query, args...)
 }
 
 //Txx the transaction with context
@@ -138,40 +154,40 @@ func (w *Wrapper) Table(t string) *Mapper {
 
 //Use is change database
 func Use(db string) *Wrapper {
-	return &Wrapper{db}
+	return &Wrapper{database: db}
 }
 
 //Exec default database
 func Exec(query string, args ...interface{}) (sql.Result, error) {
-	return (&Wrapper{Default}).Exec(query, args...)
+	return (&Wrapper{database: Default}).Exec(query, args...)
 }
 
 //Queryx default database
 func Queryx(query string, args ...interface{}) (*sqlx.Rows, error) {
-	return (&Wrapper{Default}).Queryx(query, args...)
+	return (&Wrapper{database: Default}).Queryx(query, args...)
 }
 
 //QueryRowx default database
 func QueryRowx(query string, args ...interface{}) *sqlx.Row {
-	return (&Wrapper{Default}).QueryRowx(query, args...)
+	return (&Wrapper{database: Default}).QueryRowx(query, args...)
 }
 
 //Txx default database the transaction with context
 func Txx(ctx context.Context, fn func(ctx context.Context, tx *sqlx.Tx) error) error {
-	return (&Wrapper{Default}).Txx(ctx, fn)
+	return (&Wrapper{database: Default}).Txx(ctx, fn)
 }
 
 //Tx default database the transaction
 func Tx(fn func(tx *sqlx.Tx) error) error {
-	return (&Wrapper{Default}).Tx(fn)
+	return (&Wrapper{database: Default}).Tx(fn)
 }
 
 //Get default database
 func Get(dest interface{}, query string, args ...interface{}) error {
-	return (&Wrapper{Default}).Get(dest, query, args...)
+	return (&Wrapper{database: Default}).Get(dest, query, args...)
 }
 
 //Select default database
 func Select(dest interface{}, query string, args ...interface{}) error {
-	return (&Wrapper{Default}).Select(dest, query, args...)
+	return (&Wrapper{database: Default}).Select(dest, query, args...)
 }

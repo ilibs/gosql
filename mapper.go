@@ -1,8 +1,6 @@
 package gosql
 
 import (
-	"time"
-
 	"github.com/jmoiron/sqlx"
 )
 
@@ -13,73 +11,55 @@ type Mapper struct {
 }
 
 func (m *Mapper) db() ISqlx {
-	if m.tx != nil {
-		return m.tx
+	return &Wrapper{
+		database: m.database,
+		tx:       m.tx,
 	}
-
-	return DB(m.database)
 }
 
+//Where
 func (m *Mapper) Where(str string, args ...interface{}) *Mapper {
 	m.SQLBuilder.Where(str, args...)
 	return m
 }
 
-//Update data using map[string]interface
+//Update data from to map[string]interface
 func (m *Mapper) Update(data map[string]interface{}) (affected int64, err error) {
-	query := m.updateString(data)
-	result, err := exec(m.db(), query, m.args...)
-
+	result, err := exec(m.db(), m.updateString(data), m.args...)
 	if err != nil {
 		return 0, err
 	}
 
-	affected, err = result.RowsAffected()
-	return affected, err
+	return result.RowsAffected()
 }
 
-//Create data using map[string]interface
+//Create data from to map[string]interface
 func (m *Mapper) Create(data map[string]interface{}) (lastInsertId int64, err error) {
-	query := m.insertString(data)
-	result, err := exec(m.db(), query, m.args...)
-
+	result, err := exec(m.db(), m.insertString(data), m.args...)
 	if err != nil {
 		return 0, err
 	}
 
-	lastInsertId, err = result.LastInsertId()
-
-	return lastInsertId, err
+	return result.LastInsertId()
 }
 
-//Delete data using map[string]interface
+//Delete data from to map[string]interface
 func (m *Mapper) Delete() (affected int64, err error) {
-	query := m.deleteString()
-	result, err := exec(m.db(), query, m.args...)
+	result, err := exec(m.db(), m.deleteString(), m.args...)
 	if err != nil {
 		return 0, err
 	}
-	affected, err = result.RowsAffected()
-	return affected, err
+
+	return result.RowsAffected()
 }
 
+//Count data from to map[string]interface
 func (m *Mapper) Count() (num int64, err error) {
-	query := m.countString()
-
-	defer func(start time.Time) {
-		logger.Log(&QueryStatus{
-			Query: query,
-			Args:  m.args,
-			Err:   err,
-			Start: start,
-			End:   time.Now(),
-		})
-	}(time.Now())
-	err = m.db().Get(&num, query, m.args...)
+	err = m.db().Get(&num, m.countString(), m.args...)
 	return num, err
 }
 
-// Table is default database new Mapper
+// Table select table name
 func Table(t string, tx ...*sqlx.Tx) *Mapper {
 	var txx *sqlx.Tx
 
