@@ -1,5 +1,5 @@
 # gosql
-This is a database operations class library based on [sqlx](https://github.com/jmoiron/sqlx), which is simple and will continue to be simple
+The package based on [sqlx](https://github.com/jmoiron/sqlx), It's simple and keep simple
 
 <a href="https://travis-ci.org/ilibs/gosql"><img src="https://travis-ci.org/ilibs/gosql.svg" alt="Build Status"></a>
 <a href="https://codecov.io/gh/ilibs/gosql"><img src="https://codecov.io/gh/ilibs/gosql/branch/master/graph/badge.svg" alt="codecov"></a>
@@ -10,7 +10,7 @@ This is a database operations class library based on [sqlx](https://github.com/j
 
 ## Usage
 
-Connection database and use sqlx native function,See the https://github.com/jmoiron/sqlx
+Connection database and use sqlx original function,See the https://github.com/jmoiron/sqlx
 
 ```go
 import "github.com/ilibs/gosql"
@@ -33,7 +33,7 @@ func main(){
 
 ```
 
-Default connection key is `default` config, So you can use a simpler wraper function
+Use `default` database, So you can use wrapper function
 
 ```go
 //Exec
@@ -63,7 +63,7 @@ db := gosql.Use("test")
 db.Queryx("select * from tests")
 ```
 
-## CRUD interface
+## Using struct
 
 ```go
 type Users struct {
@@ -142,7 +142,7 @@ gosql.Tx(func(tx *sqlx.Tx) error {
 
 > If you need to invoke context, you can use `gosql.Txx`
 
-## Timestamp Tracking
+## Automatic time
 If your fields contain the following field names, they will be updated automatically
 
 ```
