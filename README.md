@@ -167,22 +167,22 @@ gosql.Table("users").Create(map[string]interface{}{
 })
 
 //Update
-gosql.Table("users").Where("id = :id", id,name).Update(map[string]interface{}{
+gosql.Table("users").Where("id = ?", id).Update(map[string]interface{}{
     "name":  "fifsky",
     "email": "fifsky@test.com",
 })
 
 //Delete
-gosql.Table("users").Where("id = :id", map[string]interface{}{"id": id}).Delete()
+gosql.Table("users").Where("id = ?", id).Delete()
 
 //Count
-gosql.Table("users").Where("id = :id", map[string]interface{}{"id": id}).Count()
+gosql.Table("users").Where("id = ?", id).Count()
 
 //Change database
-gosql.Use("db2").Table("users").Where("id = :id", map[string]interface{}{"id": id}).Count()
+gosql.Use("db2").Table("users").Where("id = ?", id).Count()
 
 //Transaction `tx` is *sqlx.Tx
-gosql.Table("users",tx).Where("id = :id", map[string]interface{}{"id": id}).Count()
+gosql.Table("users",tx).Where("id = ?", id}).Count()
 ```
 
 ## Thanks
