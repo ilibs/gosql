@@ -9,22 +9,31 @@ type SQLBuilder struct {
 	table  string
 	where  string
 	order  string
-	limit  int
-	offset int
+	limit  string
+	offset string
 	// Extra args to be substituted in the *where* clause
 	args []interface{}
 }
 
 func (s *SQLBuilder) limitFormat() string {
-	return fmt.Sprintf("LIMIT %d", s.limit)
+	if s.limit != "" {
+		return fmt.Sprintf("LIMIT %s", s.limit)
+	}
+	return ""
 }
 
 func (s *SQLBuilder) offsetFormat() string {
-	return fmt.Sprintf("OFFSET %d", s.offset)
+	if s.offset != "" {
+		return fmt.Sprintf("OFFSET %s", s.offset)
+	}
+	return ""
 }
 
 func (s *SQLBuilder) orderFormat() string {
-	return fmt.Sprintf("ORDER BY %s", s.order)
+	if s.order != "" {
+		return fmt.Sprintf("ORDER BY %s", s.order)
+	}
+	return ""
 }
 
 //queryString Assemble the query statement
@@ -38,7 +47,7 @@ func (s *SQLBuilder) queryString() string {
 
 //countString Assemble the count statement
 func (s *SQLBuilder) countString() string {
-	query := fmt.Sprintf("SELECT count(*) FROM %s %s %s,%s", s.table, s.where, s.limitFormat(), s.offsetFormat())
+	query := fmt.Sprintf("SELECT count(*) FROM %s %s %s %s", s.table, s.where, s.limitFormat(), s.offsetFormat())
 	query = strings.TrimRight(query, " ")
 	query = query + ";"
 
@@ -80,7 +89,7 @@ func (s *SQLBuilder) deleteString() string {
 }
 
 func (s *SQLBuilder) Where(str string, args ...interface{}) {
-	if len(s.where) > 0 {
+	if s.where != "" {
 		s.where = fmt.Sprintf("%s AND (%s)", s.where, str)
 	} else {
 		s.where = fmt.Sprintf("WHERE (%s)", str)

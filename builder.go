@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"log"
 	"reflect"
+	"strconv"
 	"time"
 
 	"github.com/jmoiron/sqlx"
@@ -109,12 +110,12 @@ func (b *Builder) Where(str string, args ...interface{}) *Builder {
 }
 
 func (b *Builder) Limit(i int) *Builder {
-	b.limit = i
+	b.limit = strconv.Itoa(i)
 	return b
 }
 
 func (b *Builder) Offset(i int) *Builder {
-	b.offset = i
+	b.offset = strconv.Itoa(i)
 	return b
 }
 

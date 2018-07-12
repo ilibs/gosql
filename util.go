@@ -7,6 +7,7 @@ import (
 	"time"
 )
 
+//inSlice
 func inSlice(k string, s []string) bool {
 	for _, v := range s {
 		if k == v {
@@ -16,6 +17,7 @@ func inSlice(k string, s []string) bool {
 	return false
 }
 
+//zeroValueFilter filter zero value and keep the specified zero value
 func zeroValueFilter(fields map[string]reflect.Value, zv []string) map[string]interface{} {
 	m := make(map[string]interface{})
 
@@ -64,6 +66,7 @@ func zeroValueFilter(fields map[string]reflect.Value, zv []string) map[string]in
 	return m
 }
 
+// structAutoTime  auto set created_at updated_at
 func structAutoTime(fields map[string]reflect.Value, f []string) {
 	for k, v := range fields {
 		v = reflect.Indirect(v)
@@ -78,6 +81,7 @@ func structAutoTime(fields map[string]reflect.Value, f []string) {
 	}
 }
 
+// structToMap
 func structToMap(fields map[string]reflect.Value) map[string]interface{} {
 	m := make(map[string]interface{})
 	for k, v := range fields {
@@ -87,16 +91,7 @@ func structToMap(fields map[string]reflect.Value) map[string]interface{} {
 	return m
 }
 
-func sortedMap(m map[string]interface{}) []interface{} {
-	var vals []interface{}
-
-	for _, v := range sortedParamKeys(m) {
-		vals = append(vals, m[v])
-	}
-	return vals
-}
-
-// Sorts the param names given - map iteration order is explicitly random in Go
+// sortedParamKeys Sorts the param names given - map iteration order is explicitly random in Go
 // but we need params in a defined order to avoid unexpected results.
 func sortedParamKeys(params map[string]interface{}) []string {
 	sortedKeys := make([]string, len(params))
@@ -110,6 +105,7 @@ func sortedParamKeys(params map[string]interface{}) []string {
 	return sortedKeys
 }
 
+// exec Exec sql
 func exec(db ISqlx, query string, args ...interface{}) (sql.Result, error) {
 	reqult, err := db.Exec(query, args...)
 	defer func(start time.Time) {

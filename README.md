@@ -48,11 +48,11 @@ for rows.Next() {
 
 //QueryRowx
 user := &Users{}
-err := gosql.QueryRowx("select * from users where id = 1").StructScan(user)
+err := gosql.QueryRowx("select * from users where id = ?",1).StructScan(user)
 
 //Get
 user := &Users{}
-err := gosql.Get(user,"select * from users where id = 1")
+err := gosql.Get(user,"select * from users where id = ?",1)
 
 //Select
 users := make([]*Users)
@@ -89,7 +89,7 @@ func (u *Users) PK() string {
 
 //Get
 user := &Users{}
-gosql.Model(user).Where("id=1").Get()
+gosql.Model(user).Where("id=?",1).Get()
 
 //All
 user := make([]*Users,0)
@@ -99,12 +99,12 @@ gosql.Model(&user).All()
 gosql.Model(&User{Name:"test",Email:"test@gmail.com"}).Create()
 
 //Update
-gosql.Model(&User{Name:"test2",Email:"test@gmail.com"}).Where("id=1").Update()
+gosql.Model(&User{Name:"test2",Email:"test@gmail.com"}).Where("id=?",1).Update()
 //If you need to update the zero value, you can do so
-gosql.Model(&User{Status:0}).Where("id=1").Update("status")
+gosql.Model(&User{Status:0}).Where("id=?",1).Update("status")
 
 //Delete
-gosql.Model(&User{}).Where("id=1").Delete()
+gosql.Model(&User{}).Where("id=?",1).Delete()
 
 ```
 
