@@ -35,7 +35,7 @@ func TestMapper_Update(t *testing.T) {
 	RunWithSchema(t, func(t *testing.T) {
 		id := mapInsert(t, 1)
 
-		affected, err := Table("users").Where("id = :id", map[string]interface{}{"id": id}).Update(map[string]interface{}{
+		affected, err := Table("users").Where("id = ?", id).Update(map[string]interface{}{
 			"name":  "fifsky",
 			"email": "fifsky@test.com",
 		})
@@ -54,7 +54,7 @@ func TestMapper_Delete(t *testing.T) {
 	RunWithSchema(t, func(t *testing.T) {
 		{
 			id := mapInsert(t, 1)
-			affected, err := Table("users").Where("id = :id", map[string]interface{}{"id": id}).Delete()
+			affected, err := Table("users").Where("id = ?", id).Delete()
 
 			if err != nil {
 				t.Error(err)
@@ -83,7 +83,7 @@ func TestMapper_Count(t *testing.T) {
 	RunWithSchema(t, func(t *testing.T) {
 		{
 			id := mapInsert(t, 1)
-			num, err := Table("users").Where("id = :id", map[string]interface{}{"id": id}).Count()
+			num, err := Table("users").Where("id = ?", id).Count()
 
 			if err != nil {
 				t.Error(err)

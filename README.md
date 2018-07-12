@@ -167,7 +167,7 @@ gosql.Table("users").Create(map[string]interface{}{
 })
 
 //Update
-gosql.Table("users").Where("id = :id", map[string]interface{}{"id": 1}).Update(map[string]interface{}{
+gosql.Table("users").Where("id = :id", id,name).Update(map[string]interface{}{
     "name":  "fifsky",
     "email": "fifsky@test.com",
 })

@@ -133,7 +133,7 @@ func (w *Wrapper) Tx(fn func(tx *sqlx.Tx) error) (err error) {
 
 //Table new Mapper in Use database
 func (w *Wrapper) Table(t string) *Mapper {
-	return &Mapper{database: w.database, table: t}
+	return &Mapper{database: w.database, SQLBuilder: SQLBuilder{table: t}}
 }
 
 //Use is change database

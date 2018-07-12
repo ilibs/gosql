@@ -48,7 +48,10 @@ func (u *Users) PK() string {
 func RunWithSchema(t *testing.T, test func(t *testing.T)) {
 	db := DB()
 	defer func() {
-		db.Exec(dropSchema)
+		_, err := db.Exec(dropSchema)
+		if err != nil {
+			t.Error(err)
+		}
 	}()
 
 	_, err := db.Exec(createSchema)
