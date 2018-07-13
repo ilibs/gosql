@@ -1,6 +1,7 @@
 package gosql
 
 import (
+	"errors"
 	"log"
 	"strings"
 
@@ -10,6 +11,8 @@ import (
 
 //Default set database default tag name
 var Default = "default"
+//If database fatal exit
+var FatalExit = true
 var dbService = make(map[string]*sqlx.DB, 0)
 
 // DB gets the specified database engine,
@@ -33,12 +36,15 @@ func List() map[string]*sqlx.DB {
 }
 
 //Connect database
-func Connect(configs map[string]*Config) {
+func Connect(configs map[string]*Config) (err error) {
 
 	var errs []string
 	defer func() {
 		if len(errs) > 0 {
-			log.Fatal("[db] " + strings.Join(errs, "\n"))
+			err = errors.New("[db] " + strings.Join(errs, "\n"))
+			if FatalExit {
+				log.Fatal(err)
+			}
 		}
 	}()
 
@@ -69,4 +75,5 @@ func Connect(configs map[string]*Config) {
 			dbService[key] = sess
 		}
 	}
+	return
 }
