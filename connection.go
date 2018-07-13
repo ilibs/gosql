@@ -38,7 +38,7 @@ func Connect(configs map[string]*Config) {
 	var errs []string
 	defer func() {
 		if len(errs) > 0 {
-			panic("[db] " + strings.Join(errs, "\n"))
+			log.Fatal("[db] " + strings.Join(errs, "\n"))
 		}
 	}()
 
