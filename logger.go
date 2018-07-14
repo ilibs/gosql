@@ -75,4 +75,4 @@ func (lg *defaultLogger) SetLogging(logging bool) {
 	lg.logging = logging
 }
 
-var _ = Logger(&defaultLogger{})
+var _ Logger = (*defaultLogger)(nil)
