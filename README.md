@@ -13,7 +13,10 @@ The package based on [sqlx](https://github.com/jmoiron/sqlx), It's simple and ke
 Connection database and use sqlx original function,See the https://github.com/jmoiron/sqlx
 
 ```go
-import "github.com/ilibs/gosql"
+import (
+	_ "github.com/go-sql-driver/mysql" //mysql driver
+    "github.com/ilibs/gosql"
+)
 
 func main(){
     configs := make(map[string]*Config)
