@@ -109,6 +109,8 @@ gosql.Model(&User{}).Where("id=?",1).Delete()
 ```
 
 
+> You can use the [genstruct](https://github.com/fifsky/genstruct) tool to quickly generate database structs
+
 ## Transaction
 The `Tx` function has a callback function, if an error is returned, the transaction rollback
 
