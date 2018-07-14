@@ -14,7 +14,7 @@ Connection database and use sqlx original function,See the https://github.com/jm
 
 ```go
 import (
-	_ "github.com/go-sql-driver/mysql" //mysql driver
+    _ "github.com/go-sql-driver/mysql" //mysql driver
     "github.com/ilibs/gosql"
 )
 
