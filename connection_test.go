@@ -3,6 +3,8 @@ package gosql
 import (
 	"os"
 	"testing"
+
+	_ "github.com/go-sql-driver/mysql"
 )
 
 func TestMain(m *testing.M) {
