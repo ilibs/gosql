@@ -1,7 +1,6 @@
 package gosql
 
 import (
-	"database/sql"
 	"reflect"
 	"sort"
 	"time"
@@ -103,20 +102,4 @@ func sortedParamKeys(params map[string]interface{}) []string {
 	sort.Strings(sortedKeys)
 
 	return sortedKeys
-}
-
-// exec Exec sql
-func exec(db ISqlx, query string, args ...interface{}) (sql.Result, error) {
-	reqult, err := db.Exec(query, args...)
-	defer func(start time.Time) {
-		logger.Log(&QueryStatus{
-			Query: query,
-			Args:  args,
-			Err:   err,
-			Start: start,
-			End:   time.Now(),
-		})
-	}(time.Now())
-
-	return reqult, err
 }

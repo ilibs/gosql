@@ -31,7 +31,18 @@ func (w *Wrapper) db() ISqlx {
 
 //Exec wrapper sqlx.Exec
 func (w *Wrapper) Exec(query string, args ...interface{}) (result sql.Result, err error) {
-	return exec(w.db(),query,args...)
+	defer func(start time.Time) {
+		logger.Log(&QueryStatus{
+			Query: query,
+			Args:  args,
+			Err:   err,
+			Start: start,
+			End:   time.Now(),
+		})
+
+	}(time.Now())
+
+	return w.db().Exec(query, args...)
 }
 
 //Queryx wrapper sqlx.Queryx

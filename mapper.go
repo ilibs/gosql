@@ -5,16 +5,12 @@ import (
 )
 
 type Mapper struct {
-	database string
-	tx       *sqlx.Tx
+	wrapper *Wrapper
 	SQLBuilder
 }
 
 func (m *Mapper) db() ISqlx {
-	return &Wrapper{
-		database: m.database,
-		tx:       m.tx,
-	}
+	return m.wrapper
 }
 
 //Where
@@ -25,7 +21,7 @@ func (m *Mapper) Where(str string, args ...interface{}) *Mapper {
 
 //Update data from to map[string]interface
 func (m *Mapper) Update(data map[string]interface{}) (affected int64, err error) {
-	result, err := exec(m.db(), m.updateString(data), m.args...)
+	result, err := m.db().Exec(m.updateString(data), m.args...)
 	if err != nil {
 		return 0, err
 	}
@@ -35,7 +31,7 @@ func (m *Mapper) Update(data map[string]interface{}) (affected int64, err error)
 
 //Create data from to map[string]interface
 func (m *Mapper) Create(data map[string]interface{}) (lastInsertId int64, err error) {
-	result, err := exec(m.db(), m.insertString(data), m.args...)
+	result, err := m.db().Exec(m.insertString(data), m.args...)
 	if err != nil {
 		return 0, err
 	}
@@ -45,7 +41,7 @@ func (m *Mapper) Create(data map[string]interface{}) (lastInsertId int64, err er
 
 //Delete data from to map[string]interface
 func (m *Mapper) Delete() (affected int64, err error) {
-	result, err := exec(m.db(), m.deleteString(), m.args...)
+	result, err := m.db().Exec(m.deleteString(), m.args...)
 	if err != nil {
 		return 0, err
 	}
@@ -67,5 +63,5 @@ func Table(t string, tx ...*sqlx.Tx) *Mapper {
 		txx = tx[0]
 	}
 
-	return &Mapper{database: Default, SQLBuilder: SQLBuilder{table: t}, tx: txx}
+	return &Mapper{wrapper: &Wrapper{database: Default, tx: txx}, SQLBuilder: SQLBuilder{table: t}}
 }

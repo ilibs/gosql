@@ -38,10 +38,9 @@ type IModel interface {
 }
 
 type Builder struct {
-	model    interface{}
-	tx       *sqlx.Tx
-	database string
+	model   interface{}
 	SQLBuilder
+	wrapper *Wrapper
 }
 
 // Model construct SQL from Struct
@@ -62,21 +61,18 @@ func Model(model interface{}, tx ...*sqlx.Tx) *Builder {
 	}
 
 	return &Builder{
-		model: model,
-		tx:    txx,
+		model:   model,
+		wrapper: &Wrapper{tx: txx},
 	}
 }
 
 func (b *Builder) db() ISqlx {
-	return &Wrapper{
-		database: b.database,
-		tx:       b.tx,
-	}
+	return b.wrapper
 }
 
 func (b *Builder) initModel() {
 	if m, ok := b.model.(IModel); ok {
-		b.database = m.DbName()
+		b.wrapper.database = m.DbName()
 		b.table = m.TableName()
 	} else {
 		tp := reflect.Indirect(reflect.ValueOf(b.model)).Type()
@@ -85,7 +81,7 @@ func (b *Builder) initModel() {
 		}
 
 		if m, ok := reflect.Indirect(reflect.New(tp.Elem())).Interface().(IModel); ok {
-			b.database = m.DbName()
+			b.wrapper.database = m.DbName()
 			b.table = m.TableName()
 		} else {
 			log.Fatalf("model argument must implementation IModel interface or slice []IModel and pointer,but get %#v", b.model)
@@ -120,7 +116,7 @@ func (b *Builder) OrderBy(str string) *Builder {
 //All get data row from to Struct
 func (b *Builder) Get() (err error) {
 	b.initModel()
-	return b.db().QueryRowx(b.queryString(), b.args...).StructScan(b.model)
+	return b.db().Get(b.model, b.queryString(), b.args...)
 }
 
 //All get data rows from to Struct
@@ -138,8 +134,7 @@ func (b *Builder) Create() (lastInsertId int64, err error) {
 	structAutoTime(fields, AUTO_CREATE_TIME_FIELDS)
 	m := structToMap(fields)
 
-	result, err := exec(b.db(), b.insertString(m), b.args...)
-
+	result, err := b.db().Exec(b.insertString(m), b.args...)
 	if err != nil {
 		return 0, err
 	}
@@ -156,8 +151,7 @@ func (b *Builder) Update(zeroValues ...string) (affected int64, err error) {
 	structAutoTime(fields, AUTO_UPDATE_TIME_FIELDS)
 	m := zeroValueFilter(fields, zeroValues)
 
-	result, err := exec(b.db(), b.updateString(m), b.args...)
-
+	result, err := b.db().Exec(b.updateString(m), b.args...)
 	if err != nil {
 		return 0, err
 	}
@@ -168,7 +162,7 @@ func (b *Builder) Update(zeroValues ...string) (affected int64, err error) {
 //gosql.Model(&User{}).Delete()
 func (b *Builder) Delete() (affected int64, err error) {
 	b.initModel()
-	result, err := exec(b.db(), b.deleteString(), b.args...)
+	result, err := b.db().Exec(b.deleteString(), b.args...)
 	if err != nil {
 		return 0, err
 	}
