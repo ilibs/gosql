@@ -5,7 +5,6 @@ import (
 	"bytes"
 	"context"
 	"database/sql"
-	"io"
 	"os"
 	"strings"
 	"time"
@@ -167,7 +166,7 @@ func (w *Wrapper) Import(f string) ([]sql.Result, error) {
 	defer file.Close()
 
 	var results []sql.Result
-	scanner := bufio.NewScanner(r)
+	scanner := bufio.NewScanner(file)
 
 	semiColSpliter := func(data []byte, atEOF bool) (advance int, token []byte, err error) {
 		if atEOF && len(data) == 0 {
