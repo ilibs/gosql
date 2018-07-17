@@ -1,9 +1,13 @@
 package gosql
 
 import (
+	"bufio"
+	"bytes"
 	"context"
 	"database/sql"
+	"io"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/jmoiron/sqlx"
@@ -161,7 +165,39 @@ func (w *Wrapper) Import(f string) ([]sql.Result, error) {
 		return nil, err
 	}
 	defer file.Close()
-	return Import(w.db(), file)
+
+	var results []sql.Result
+	scanner := bufio.NewScanner(r)
+
+	semiColSpliter := func(data []byte, atEOF bool) (advance int, token []byte, err error) {
+		if atEOF && len(data) == 0 {
+			return 0, nil, nil
+		}
+		if i := bytes.IndexByte(data, ';'); i >= 0 {
+			return i + 1, data[0:i], nil
+		}
+		// If we're at EOF, we have a final, non-terminated line. Return it.
+		if atEOF {
+			return len(data), data, nil
+		}
+		// Request more data.
+		return 0, nil, nil
+	}
+
+	scanner.Split(semiColSpliter)
+
+	for scanner.Scan() {
+		query := strings.Trim(scanner.Text(), " \t\n\r")
+		if len(query) > 0 {
+			result, err := w.db().Exec(query)
+			results = append(results, result)
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
+
+	return results, nil
 }
 
 //Use is change database
@@ -207,4 +243,9 @@ func Get(dest interface{}, query string, args ...interface{}) error {
 //Select default database
 func Select(dest interface{}, query string, args ...interface{}) error {
 	return (&Wrapper{database: Default}).Select(dest, query, args...)
+}
+
+// Import SQL DDL from io.Reader
+func Import(f string) ([]sql.Result, error) {
+	return (&Wrapper{database: Default}).Import(f)
 }
