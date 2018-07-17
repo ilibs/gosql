@@ -69,10 +69,13 @@ func (s *SQLBuilder) insertString(params map[string]interface{}) string {
 //updateString Assemble the update statement
 func (s *SQLBuilder) updateString(params map[string]interface{}) string {
 	var updateFields []string
+	args := make([]interface{},0)
 	for _, k := range sortedParamKeys(params) {
 		updateFields = append(updateFields, fmt.Sprintf("%s=?", fmt.Sprintf("`%s`", k)))
-		s.args = append(s.args, params[k])
+		args = append(args, params[k])
 	}
+	args = append(args,s.args...)
+	s.args = args
 
 	query := fmt.Sprintf("UPDATE %s SET %s %s", s.table, strings.Join(updateFields, ","), s.where)
 	query = strings.TrimRight(query, " ")

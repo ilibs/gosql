@@ -114,10 +114,14 @@ func TestBuilder_Update(t *testing.T) {
 			Name: "test2",
 		}
 
-		_, err := Model(user).Where("id=1").Update()
+		affected, err := Model(user).Where("id=?",1).Update()
 
 		if err != nil {
 			t.Error("update user error", err)
+		}
+
+		if affected == 0 {
+			t.Error("update user affected error", err)
 		}
 	})
 }
@@ -125,10 +129,14 @@ func TestBuilder_Update(t *testing.T) {
 func TestBuilder_Delete(t *testing.T) {
 	RunWithSchema(t, func(t *testing.T) {
 		insert(1)
-		_, err := Model(&Users{}).Where("id=1").Delete()
+		affected, err := Model(&Users{}).Where("id=?",1).Delete()
 
 		if err != nil {
 			t.Error("delete user error", err)
+		}
+
+		if affected == 0 {
+			t.Error("delete user affected error", err)
 		}
 	})
 }
