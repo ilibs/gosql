@@ -14,6 +14,7 @@ CREATE TABLE users (
 	id int(11) unsigned NOT NULL AUTO_INCREMENT,
 	name  varchar(100) NOT NULL DEFAULT '',
 	email  varchar(100) NOT NULL DEFAULT '',
+	status  varchar(100) NOT NULL DEFAULT 0,
 	created_at datetime NOT NULL,
 	updated_at datetime NOT NULL,
   	PRIMARY KEY (id)
@@ -29,6 +30,7 @@ type Users struct {
 	Id        int       `db:"id"`
 	Name      string    `db:"name"`
 	Email     string    `db:"email"`
+	Status    int       `db:"status"`
 	CreatedAt time.Time `db:"created_at"`
 	UpdatedAt time.Time `db:"updated_at"`
 }
@@ -65,9 +67,20 @@ func RunWithSchema(t *testing.T, test func(t *testing.T)) {
 
 func insert(id int) {
 	user := &Users{
-		Id:    id,
-		Name:  "test" + strconv.Itoa(id),
-		Email: "test" + strconv.Itoa(id) + "@test.com",
+		Id:     id,
+		Name:   "test" + strconv.Itoa(id),
+		Status: 1,
+		Email:  "test" + strconv.Itoa(id) + "@test.com",
+	}
+	Model(user).Create()
+}
+
+func insertStatus(id int, status int) {
+	user := &Users{
+		Id:     id,
+		Name:   "test" + strconv.Itoa(id),
+		Status: status,
+		Email:  "test" + strconv.Itoa(id) + "@test.com",
 	}
 	Model(user).Create()
 }
@@ -87,9 +100,24 @@ func TestBuilder_Get(t *testing.T) {
 		}
 		{
 			user := &Users{
-				Id: 1,
+				Name:   "test1",
+				Status: 1,
 			}
 			err := Model(user).Get()
+
+			if err != nil {
+				t.Error(err)
+			}
+			fmt.Println(user)
+		}
+
+		{
+			insertStatus(2, 0)
+			user := &Users{
+				Status: 0,
+			}
+
+			err := Model(user).Where("id = ?", 2).Get("status")
 
 			if err != nil {
 				t.Error(err)
@@ -175,7 +203,7 @@ func TestBuilder_Delete(t *testing.T) {
 		}
 		{
 			insert(1)
-			affected, err := Model(&Users{Id:1}).Delete()
+			affected, err := Model(&Users{Id: 1}).Delete()
 
 			if err != nil {
 				t.Error("delete user error", err)
@@ -185,21 +213,53 @@ func TestBuilder_Delete(t *testing.T) {
 				t.Error("delete user affected error", err)
 			}
 		}
+
+		{
+			insertStatus(1, 0)
+			insertStatus(2, 0)
+			insertStatus(3, 0)
+
+			affected, err := Model(&Users{Status: 0}).Delete("status")
+
+			if err != nil {
+				t.Error("delete user error", err)
+			}
+
+			if affected != 3 {
+				t.Error("delete user affected error", err)
+			}
+		}
 	})
 }
 
 func TestBuilder_Count(t *testing.T) {
 	RunWithSchema(t, func(t *testing.T) {
 		insert(1)
+		{
+			num, err := Model(&Users{}).Count()
 
-		num, err := Model(&Users{}).Count()
+			if err != nil {
+				t.Error(err)
+			}
 
-		if err != nil {
-			t.Error(err)
+			if num != 1 {
+				t.Error("count user error")
+			}
 		}
 
-		if num != 1 {
-			t.Error("count user error")
+		{
+			insertStatus(2, 0)
+			insertStatus(3, 0)
+
+			num, err := Model(&Users{Status: 0}).Count("status")
+
+			if err != nil {
+				t.Error(err)
+			}
+
+			if num != 2 {
+				t.Error("count user error")
+			}
 		}
 	})
 }

@@ -42,6 +42,7 @@ type Builder struct {
 	model   interface{}
 	SQLBuilder
 	wrapper *Wrapper
+	zeroValues []string
 }
 
 // Model construct SQL from Struct
@@ -124,11 +125,11 @@ func (b *Builder) reflectModel(autoTime []string) map[string]reflect.Value {
 }
 
 //All get data row from to Struct
-func (b *Builder) Get() (err error) {
+func (b *Builder) Get(zeroValues ...string) (err error) {
 	b.initModel()
-	m := zeroValueFilter(b.reflectModel(nil), nil)
+	m := zeroValueFilter(b.reflectModel(nil), zeroValues)
 	//If where is empty, the primary key where condition is generated automatically
-	b.generateWhereForPK(m)
+	b.generateWhere(m)
 
 	return b.db().Get(b.model, b.queryString(), b.args...)
 }
@@ -152,6 +153,12 @@ func (b *Builder) Create() (lastInsertId int64, err error) {
 	}
 
 	return result.LastInsertId()
+}
+
+func (b *Builder) generateWhere(m map[string]interface{}) {
+	for k, v := range m {
+		b.Where(fmt.Sprintf("%s=?", k), v)
+	}
 }
 
 func (b *Builder) generateWhereForPK(m map[string]interface{}) {
@@ -182,12 +189,12 @@ func (b *Builder) Update(zeroValues ...string) (affected int64, err error) {
 }
 
 //gosql.Model(&User{Id:1}).Delete()
-func (b *Builder) Delete() (affected int64, err error) {
+func (b *Builder) Delete(zeroValues ...string) (affected int64, err error) {
 	b.initModel()
 
-	m := zeroValueFilter(b.reflectModel(nil), nil)
+	m := zeroValueFilter(b.reflectModel(nil), zeroValues)
 	//If where is empty, the primary key where condition is generated automatically
-	b.generateWhereForPK(m)
+	b.generateWhere(m)
 
 	result, err := b.db().Exec(b.deleteString(), b.args...)
 	if err != nil {
@@ -197,8 +204,13 @@ func (b *Builder) Delete() (affected int64, err error) {
 }
 
 //gosql.Model(&User{}).Where("status = 0").Count()
-func (b *Builder) Count() (num int64, err error) {
+func (b *Builder) Count(zeroValues ...string) (num int64, err error) {
 	b.initModel()
+
+	m := zeroValueFilter(b.reflectModel(nil), zeroValues)
+	//If where is empty, the primary key where condition is generated automatically
+	b.generateWhere(m)
+
 	err = b.db().Get(&num, b.countString(), b.args...)
 	return num, err
 }

@@ -111,11 +111,11 @@ gosql.Model(&User{}).Where("id=?",1).Delete()
 
 ```
 
-If you only use the primary key as the where condition, you can
+If you use struct to generate where conditions, you can
 
 ```go
-//Get
-user := &Users{Id:1}
+//Get where id = 1 and name = "test1"
+user := &Users{Id:1,Name:"test1"}
 gosql.Model(&user).Get()
 
 //Update
