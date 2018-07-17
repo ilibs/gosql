@@ -3,6 +3,7 @@ package gosql
 import (
 	"context"
 	"database/sql"
+	"os"
 	"time"
 
 	"github.com/jmoiron/sqlx"
@@ -151,6 +152,16 @@ func (w *Wrapper) Tx(fn func(tx *sqlx.Tx) error) (err error) {
 //for example gosql.Use("db2").Table("users")
 func (w *Wrapper) Table(t string) *Mapper {
 	return Table(t, w.tx)
+}
+
+//Import SQL DDL from sql file
+func (w *Wrapper) Import(f string) ([]sql.Result, error) {
+	file, err := os.Open(f)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+	return Import(w.db(), file)
 }
 
 //Use is change database

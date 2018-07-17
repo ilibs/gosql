@@ -1,8 +1,13 @@
 package gosql
 
 import (
+	"bufio"
+	"bytes"
+	"database/sql"
+	"io"
 	"reflect"
 	"sort"
+	"strings"
 	"time"
 )
 
@@ -102,4 +107,40 @@ func sortedParamKeys(params map[string]interface{}) []string {
 	sort.Strings(sortedKeys)
 
 	return sortedKeys
+}
+
+// Import SQL DDL from io.Reader
+func Import(db ISqlx, r io.Reader) ([]sql.Result, error) {
+	var results []sql.Result
+	scanner := bufio.NewScanner(r)
+
+	semiColSpliter := func(data []byte, atEOF bool) (advance int, token []byte, err error) {
+		if atEOF && len(data) == 0 {
+			return 0, nil, nil
+		}
+		if i := bytes.IndexByte(data, ';'); i >= 0 {
+			return i + 1, data[0:i], nil
+		}
+		// If we're at EOF, we have a final, non-terminated line. Return it.
+		if atEOF {
+			return len(data), data, nil
+		}
+		// Request more data.
+		return 0, nil, nil
+	}
+
+	scanner.Split(semiColSpliter)
+
+	for scanner.Scan() {
+		query := strings.Trim(scanner.Text(), " \t\n\r")
+		if len(query) > 0 {
+			result, err := db.Exec(query)
+			results = append(results, result)
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
+
+	return results, nil
 }
