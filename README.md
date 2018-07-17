@@ -118,8 +118,11 @@ If you use struct to generate where conditions
 user := &Users{Id:1,Name:"test1"}
 gosql.Model(&user).Get()
 
-//Update
+//Update default use primary key as the condition
 gosql.Model(&User{Id:1,Name:"test2"}).Update()
+//Use custom conditions
+//Builder => UPDATE users SET `id`=?,`name`=?,`updated_at`=? WHERE (status = ?)
+gosql.Model(&User{Id:1,Name:"test2"}).Where("status = ?",1).Update()
 
 //Delete
 gosql.Model(&User{Id:1}).Delete()
