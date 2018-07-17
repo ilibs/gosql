@@ -111,7 +111,7 @@ gosql.Model(&User{}).Where("id=?",1).Delete()
 
 ```
 
-If you use struct to generate where conditions, you can
+If you use struct to generate where conditions
 
 ```go
 //Get where id = 1 and name = "test1"
@@ -123,6 +123,13 @@ gosql.Model(&User{Id:1,Name:"test2"}).Update()
 
 //Delete
 gosql.Model(&User{Id:1}).Delete()
+```
+
+But the null value is filtered by default, and you can specify fields that are not filtered, for example
+
+```go
+user := &Users{Id:1,Status:0}
+gosql.Model(&user).Get("status")
 ```
 
 > You can use the [genstruct](https://github.com/fifsky/genstruct) tool to quickly generate database structs
