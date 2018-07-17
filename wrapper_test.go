@@ -255,3 +255,12 @@ func TestTxx(t *testing.T) {
 		}
 	})
 }
+
+func TestImport(t *testing.T) {
+	RunWithSchema(t, func(t *testing.T) {
+		_, err := Import("./testdata/test.sql")
+		if err != nil {
+			t.Error(err)
+		}
+	})
+}
