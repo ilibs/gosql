@@ -111,6 +111,19 @@ gosql.Model(&User{}).Where("id=?",1).Delete()
 
 ```
 
+If you only use the primary key as the where condition, you can
+
+```go
+//Get
+user := &Users{Id:1}
+gosql.Model(&user).Get()
+
+//Update
+gosql.Model(&User{Id:1,Name:"test2"}).Update()
+
+//Delete
+gosql.Model(&User{Id:1}).Delete()
+```
 
 > You can use the [genstruct](https://github.com/fifsky/genstruct) tool to quickly generate database structs
 

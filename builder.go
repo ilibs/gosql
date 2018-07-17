@@ -1,6 +1,7 @@
 package gosql
 
 import (
+	"fmt"
 	"log"
 	"reflect"
 	"strconv"
@@ -113,9 +114,22 @@ func (b *Builder) OrderBy(str string) *Builder {
 	return b
 }
 
+func (b *Builder) reflectModel(autoTime []string) map[string]reflect.Value {
+	uv := reflect.Indirect(reflect.ValueOf(b.model))
+	fields := mapper.FieldMap(uv)
+	if autoTime != nil {
+		structAutoTime(fields, autoTime)
+	}
+	return fields
+}
+
 //All get data row from to Struct
 func (b *Builder) Get() (err error) {
 	b.initModel()
+	m := zeroValueFilter(b.reflectModel(nil), nil)
+	//If where is empty, the primary key where condition is generated automatically
+	b.generateWhereForPK(m)
+
 	return b.db().Get(b.model, b.queryString(), b.args...)
 }
 
@@ -129,9 +143,7 @@ func (b *Builder) All() (err error) {
 func (b *Builder) Create() (lastInsertId int64, err error) {
 	b.initModel()
 
-	rv := reflect.Indirect(reflect.ValueOf(b.model))
-	fields := mapper.FieldMap(rv)
-	structAutoTime(fields, AUTO_CREATE_TIME_FIELDS)
+	fields := b.reflectModel(AUTO_CREATE_TIME_FIELDS)
 	m := structToMap(fields)
 
 	result, err := b.db().Exec(b.insertString(m), b.args...)
@@ -142,14 +154,24 @@ func (b *Builder) Create() (lastInsertId int64, err error) {
 	return result.LastInsertId()
 }
 
-//gosql.Model(&User{Status:0}).Where("id = ?",1).Update("status")
+func (b *Builder) generateWhereForPK(m map[string]interface{}) {
+	pk := b.model.(IModel).PK()
+	pval, has := m[pk]
+	if b.where == "" && has {
+		b.Where(fmt.Sprintf("%s=?", pk), pval)
+		delete(m,pk)
+	}
+}
+
+//gosql.Model(&User{Id:1,Status:0}).Update("status")
 func (b *Builder) Update(zeroValues ...string) (affected int64, err error) {
 	b.initModel()
 
-	uv := reflect.Indirect(reflect.ValueOf(b.model))
-	fields := mapper.FieldMap(uv)
-	structAutoTime(fields, AUTO_UPDATE_TIME_FIELDS)
+	fields := b.reflectModel(AUTO_UPDATE_TIME_FIELDS)
 	m := zeroValueFilter(fields, zeroValues)
+
+	//If where is empty, the primary key where condition is generated automatically
+	b.generateWhereForPK(m)
 
 	result, err := b.db().Exec(b.updateString(m), b.args...)
 	if err != nil {
@@ -159,9 +181,14 @@ func (b *Builder) Update(zeroValues ...string) (affected int64, err error) {
 	return result.RowsAffected()
 }
 
-//gosql.Model(&User{}).Delete()
+//gosql.Model(&User{Id:1}).Delete()
 func (b *Builder) Delete() (affected int64, err error) {
 	b.initModel()
+
+	m := zeroValueFilter(b.reflectModel(nil), nil)
+	//If where is empty, the primary key where condition is generated automatically
+	b.generateWhereForPK(m)
+
 	result, err := b.db().Exec(b.deleteString(), b.args...)
 	if err != nil {
 		return 0, err

@@ -75,13 +75,27 @@ func insert(id int) {
 func TestBuilder_Get(t *testing.T) {
 	RunWithSchema(t, func(t *testing.T) {
 		insert(1)
-		user := &Users{}
-		err := Model(user).Where("id = ?", 1).Get()
+		{
+			user := &Users{}
+			err := Model(user).Where("id = ?", 1).Get()
 
-		if err != nil {
-			t.Error(err)
+			if err != nil {
+				t.Error(err)
+			}
+			//fmt.Println(user)
+
 		}
-		//fmt.Println(user)
+		{
+			user := &Users{
+				Id: 1,
+			}
+			err := Model(user).Get()
+
+			if err != nil {
+				t.Error(err)
+			}
+			fmt.Println(user)
+		}
 	})
 }
 
@@ -110,33 +124,66 @@ func TestBuilder_Update(t *testing.T) {
 	RunWithSchema(t, func(t *testing.T) {
 		insert(1)
 
-		user := &Users{
-			Name: "test2",
+		{
+			user := &Users{
+				Name: "test2",
+			}
+
+			affected, err := Model(user).Where("id=?", 1).Update()
+
+			if err != nil {
+				t.Error("update user error", err)
+			}
+
+			if affected == 0 {
+				t.Error("update user affected error", err)
+			}
 		}
 
-		affected, err := Model(user).Where("id=?",1).Update()
+		{
+			user := &Users{
+				Id:   1,
+				Name: "test3",
+			}
 
-		if err != nil {
-			t.Error("update user error", err)
-		}
+			affected, err := Model(user).Update()
 
-		if affected == 0 {
-			t.Error("update user affected error", err)
+			if err != nil {
+				t.Error("update user error", err)
+			}
+
+			if affected == 0 {
+				t.Error("update user affected error", err)
+			}
 		}
 	})
 }
 
 func TestBuilder_Delete(t *testing.T) {
 	RunWithSchema(t, func(t *testing.T) {
-		insert(1)
-		affected, err := Model(&Users{}).Where("id=?",1).Delete()
+		{
+			insert(1)
+			affected, err := Model(&Users{}).Where("id=?", 1).Delete()
 
-		if err != nil {
-			t.Error("delete user error", err)
+			if err != nil {
+				t.Error("delete user error", err)
+			}
+
+			if affected == 0 {
+				t.Error("delete user affected error", err)
+			}
 		}
+		{
+			insert(1)
+			affected, err := Model(&Users{Id:1}).Delete()
 
-		if affected == 0 {
-			t.Error("delete user affected error", err)
+			if err != nil {
+				t.Error("delete user error", err)
+			}
+
+			if affected == 0 {
+				t.Error("delete user affected error", err)
+			}
 		}
 	})
 }
