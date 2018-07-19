@@ -27,8 +27,6 @@ var (
 		"update_at",
 		"updated_at",
 	}
-
-	logger = &defaultLogger{}
 )
 
 //Model interface
@@ -39,9 +37,9 @@ type IModel interface {
 }
 
 type Builder struct {
-	model   interface{}
+	model      interface{}
 	SQLBuilder
-	wrapper *Wrapper
+	wrapper    *Wrapper
 	zeroValues []string
 }
 
@@ -166,7 +164,7 @@ func (b *Builder) generateWhereForPK(m map[string]interface{}) {
 	pval, has := m[pk]
 	if b.where == "" && has {
 		b.Where(fmt.Sprintf("%s=?", pk), pval)
-		delete(m,pk)
+		delete(m, pk)
 	}
 }
 

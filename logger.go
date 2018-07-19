@@ -3,6 +3,7 @@ package gosql
 import (
 	"fmt"
 	"log"
+	"os"
 	"regexp"
 	"strings"
 	"time"
@@ -54,25 +55,29 @@ func (q *QueryStatus) String() string {
 }
 
 // Logger represents a logging collector. You can pass a logging collector to
-// db.DefaultSettings.SetLogger(myCollector) to make it collect db.QueryStatus messages
+// gosql.SetLogger(myCollector) to make it collect QueryStatus messages
 // after executing a query.
 type Logger interface {
-	Log(*QueryStatus)
-	SetLogging(logging bool)
+	Printf(format string, v ...interface{})
 }
 
 type defaultLogger struct {
 	logging bool
+	log     Logger
 }
 
-func (lg *defaultLogger) Log(m *QueryStatus) {
-	if lg.logging {
-		log.Printf("\n\t%s\n\n", strings.Replace(m.String(), "\n", "\n\t", -1))
+func (d *defaultLogger) Log(m *QueryStatus) {
+	if d.logging {
+		d.log.Printf("\n\t%s\n\n", strings.Replace(m.String(), "\n", "\n\t", -1))
 	}
 }
 
-func (lg *defaultLogger) SetLogging(logging bool) {
-	lg.logging = logging
+func (d *defaultLogger) SetLogging(logging bool) {
+	d.logging = logging
 }
 
-var _ Logger = (*defaultLogger)(nil)
+var logger = &defaultLogger{log: log.New(os.Stderr, "", log.LstdFlags)}
+
+func SetLogger(l Logger) {
+	logger.log = l
+}
