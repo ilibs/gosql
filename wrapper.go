@@ -20,6 +20,10 @@ type ISqlx interface {
 	Exec(query string, args ...interface{}) (sql.Result, error)
 }
 
+var (
+	defaultWrapper = Use(Default)
+)
+
 type Wrapper struct {
 	database string
 	tx       *sqlx.Tx
@@ -211,40 +215,40 @@ func WithTx(tx *sqlx.Tx) *Wrapper {
 
 //Exec default database
 func Exec(query string, args ...interface{}) (sql.Result, error) {
-	return (&Wrapper{database: Default}).Exec(query, args...)
+	return defaultWrapper.Exec(query, args...)
 }
 
 //Queryx default database
 func Queryx(query string, args ...interface{}) (*sqlx.Rows, error) {
-	return (&Wrapper{database: Default}).Queryx(query, args...)
+	return defaultWrapper.Queryx(query, args...)
 }
 
 //QueryRowx default database
 func QueryRowx(query string, args ...interface{}) *sqlx.Row {
-	return (&Wrapper{database: Default}).QueryRowx(query, args...)
+	return defaultWrapper.QueryRowx(query, args...)
 }
 
 //Txx default database the transaction with context
 func Txx(ctx context.Context, fn func(ctx context.Context, tx *sqlx.Tx) error) error {
-	return (&Wrapper{database: Default}).Txx(ctx, fn)
+	return defaultWrapper.Txx(ctx, fn)
 }
 
 //Tx default database the transaction
 func Tx(fn func(tx *sqlx.Tx) error) error {
-	return (&Wrapper{database: Default}).Tx(fn)
+	return defaultWrapper.Tx(fn)
 }
 
 //Get default database
 func Get(dest interface{}, query string, args ...interface{}) error {
-	return (&Wrapper{database: Default}).Get(dest, query, args...)
+	return defaultWrapper.Get(dest, query, args...)
 }
 
 //Select default database
 func Select(dest interface{}, query string, args ...interface{}) error {
-	return (&Wrapper{database: Default}).Select(dest, query, args...)
+	return defaultWrapper.Select(dest, query, args...)
 }
 
 // Import SQL DDL from io.Reader
 func Import(f string) ([]sql.Result, error) {
-	return (&Wrapper{database: Default}).Import(f)
+	return defaultWrapper.Import(f)
 }
