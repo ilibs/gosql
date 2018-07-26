@@ -12,7 +12,7 @@ func TestUtil_inSlice(t *testing.T) {
 		t.Error("in slice find error")
 	}
 
-	if inSlice("b", s) {
+	if inSlice("d", s) {
 		t.Error("in slice exist error")
 	}
 }

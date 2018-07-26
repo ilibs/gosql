@@ -44,15 +44,6 @@ type Builder struct {
 
 // Model construct SQL from Struct
 func Model(model interface{}, tx ...*sqlx.Tx) *Builder {
-	value := reflect.ValueOf(model)
-	if value.Kind() != reflect.Ptr {
-		log.Fatalf("model argument must pass a pointer, not a value %#v", model)
-	}
-
-	if value.IsNil() {
-		log.Fatalf("model argument cannot be nil pointer passed")
-	}
-
 	var txx *sqlx.Tx
 
 	if tx != nil {
@@ -74,7 +65,16 @@ func (b *Builder) initModel() {
 		b.wrapper.database = m.DbName()
 		b.table = m.TableName()
 	} else {
-		tp := reflect.Indirect(reflect.ValueOf(b.model)).Type()
+		value := reflect.ValueOf(b.model)
+		if value.Kind() != reflect.Ptr {
+			log.Fatalf("model argument must pass a pointer, not a value %#v", b.model)
+		}
+
+		if value.IsNil() {
+			log.Fatalf("model argument cannot be nil pointer passed")
+		}
+
+		tp := reflect.Indirect(value).Type()
 		if tp.Kind() != reflect.Slice {
 			log.Fatalf("model argument must slice, but get %#v", b.model)
 		}
