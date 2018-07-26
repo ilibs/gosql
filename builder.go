@@ -40,7 +40,6 @@ type Builder struct {
 	model      interface{}
 	SQLBuilder
 	wrapper    *Wrapper
-	zeroValues []string
 }
 
 // Model construct SQL from Struct
