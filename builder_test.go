@@ -14,7 +14,7 @@ CREATE TABLE users (
 	id int(11) unsigned NOT NULL AUTO_INCREMENT,
 	name  varchar(100) NOT NULL DEFAULT '',
 	email  varchar(100) NOT NULL DEFAULT '',
-	status  varchar(100) NOT NULL DEFAULT 0,
+	status  int(11) NOT NULL DEFAULT 0,
 	created_at datetime NOT NULL,
 	updated_at datetime NOT NULL,
   	PRIMARY KEY (id)

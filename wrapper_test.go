@@ -28,6 +28,17 @@ func TestExec(t *testing.T) {
 		if id != 1 {
 			t.Error("lastInsertId error")
 		}
+
+		Exec("update users set status = status + 1 where id = ?", 1)
+
+		result, err = Exec("update users set status = status + 1 where id = ?", 1)
+		if err != nil {
+			t.Error("update user error", err)
+		}
+
+		if aff, _ := result.RowsAffected(); aff == 0 {
+			t.Error("update set error")
+		}
 	})
 }
 
