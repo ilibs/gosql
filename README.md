@@ -128,7 +128,7 @@ gosql.Model(&User{Id:1,Name:"test2"}).Where("status = ?",1).Update()
 gosql.Model(&User{Id:1}).Delete()
 ```
 
-But the null value is filtered by default, and you can specify fields that are not filtered, for example
+But the zero value is filtered by default, you can specify fields that are not filtered. For example
 
 ```go
 user := &Users{Id:1,Status:0}
