@@ -19,7 +19,7 @@ import (
 )
 
 func main(){
-    configs := make(map[string]*Config)
+    configs := make(map[string]*gosql.Config)
 
     configs["default"] = &gosql.Config{
         Enable:  true,
