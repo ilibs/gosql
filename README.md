@@ -98,7 +98,7 @@ gosql.Model(user).Where("id=?",1).Get()
 user := make([]*Users,0)
 gosql.Model(&user).All()
 
-//Create and Timestamp Tracking
+//Create and auto set CreatedAt
 gosql.Model(&User{Name:"test",Email:"test@gmail.com"}).Create()
 
 //Update
