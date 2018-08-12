@@ -37,9 +37,9 @@ type IModel interface {
 }
 
 type Builder struct {
-	model      interface{}
+	model   interface{}
 	SQLBuilder
-	wrapper    *Wrapper
+	wrapper *Wrapper
 }
 
 // Model construct SQL from Struct
@@ -54,6 +54,11 @@ func Model(model interface{}, tx ...*sqlx.Tx) *Builder {
 		model:   model,
 		wrapper: &Wrapper{tx: txx},
 	}
+}
+
+func (b *Builder) ShowSQL() *Builder {
+	b.wrapper.logging = true
+	return b
 }
 
 func (b *Builder) db() ISqlx {

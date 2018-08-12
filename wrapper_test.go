@@ -11,6 +11,20 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
+func TestShowSql(t *testing.T) {
+	logger.logging = false
+	RunWithSchema(t, func(t *testing.T) {
+		insert(1)
+
+		ShowSql().Queryx("select * from users")
+		user := &Users{}
+		Model(user).ShowSQL().Where("id = ?", 1).Get()
+		Table("users").ShowSQL().Where("id = ?", 1).Update(map[string]interface{}{
+			"name": "test2",
+		})
+	})
+}
+
 func TestExec(t *testing.T) {
 	RunWithSchema(t, func(t *testing.T) {
 		result, err := Exec("insert into users(name,email,created_at,updated_at) value(?,?,?,?)", "test", "test@gmail.com", time.Now(), time.Now())

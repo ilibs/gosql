@@ -66,8 +66,8 @@ type defaultLogger struct {
 	log     Logger
 }
 
-func (d *defaultLogger) Log(m *QueryStatus) {
-	if d.logging {
+func (d *defaultLogger) Log(m *QueryStatus, show bool) {
+	if d.logging || show {
 		d.log.Printf("\n\t%s\n\n", strings.Replace(m.String(), "\n", "\n\t", -1))
 	}
 }

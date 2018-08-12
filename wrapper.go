@@ -27,6 +27,7 @@ var (
 type Wrapper struct {
 	database string
 	tx       *sqlx.Tx
+	logging  bool
 }
 
 func (w *Wrapper) db() ISqlx {
@@ -35,6 +36,12 @@ func (w *Wrapper) db() ISqlx {
 	}
 
 	return DB(w.database).Unsafe()
+}
+
+func ShowSql() *Wrapper  {
+	w := Use(Default)
+	w.logging = true
+	return w
 }
 
 //Exec wrapper sqlx.Exec
@@ -46,7 +53,7 @@ func (w *Wrapper) Exec(query string, args ...interface{}) (result sql.Result, er
 			Err:   err,
 			Start: start,
 			End:   time.Now(),
-		})
+		}, w.logging)
 
 	}(time.Now())
 
@@ -62,7 +69,7 @@ func (w *Wrapper) Queryx(query string, args ...interface{}) (rows *sqlx.Rows, er
 			Err:   err,
 			Start: start,
 			End:   time.Now(),
-		})
+		}, w.logging)
 	}(time.Now())
 
 	return w.db().Queryx(query, args...)
@@ -77,7 +84,7 @@ func (w *Wrapper) QueryRowx(query string, args ...interface{}) (rows *sqlx.Row) 
 			Err:   rows.Err(),
 			Start: start,
 			End:   time.Now(),
-		})
+		}, w.logging)
 	}(time.Now())
 
 	return w.db().QueryRowx(query, args...)
@@ -92,7 +99,7 @@ func (w *Wrapper) Get(dest interface{}, query string, args ...interface{}) (err 
 			Err:   err,
 			Start: start,
 			End:   time.Now(),
-		})
+		}, w.logging)
 	}(time.Now())
 
 	return w.db().Get(dest, query, args...)
@@ -107,7 +114,7 @@ func (w *Wrapper) Select(dest interface{}, query string, args ...interface{}) (e
 			Err:   err,
 			Start: start,
 			End:   time.Now(),
-		})
+		}, w.logging)
 	}(time.Now())
 
 	return w.db().Select(dest, query, args...)

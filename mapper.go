@@ -9,6 +9,11 @@ type Mapper struct {
 	SQLBuilder
 }
 
+func (m *Mapper) ShowSQL() *Mapper {
+	m.wrapper.logging = true
+	return m
+}
+
 func (m *Mapper) db() ISqlx {
 	return m.wrapper
 }
