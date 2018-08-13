@@ -4,6 +4,7 @@ import (
 	"errors"
 	"log"
 	"strings"
+	"time"
 
 	"github.com/jmoiron/sqlx"
 )
@@ -66,6 +67,9 @@ func Connect(configs map[string]*Config) (err error) {
 
 		sess.SetMaxOpenConns(conf.MaxOpenConns)
 		sess.SetMaxIdleConns(conf.MaxIdleConns)
+		if conf.MaxLifetime > 0 {
+			sess.SetConnMaxLifetime(time.Duration(conf.MaxLifetime) * time.Second)
+		}
 
 		if db, ok := dbService[key]; ok {
 			dbService[key] = sess
