@@ -23,35 +23,29 @@ func zeroValueFilter(fields map[string]reflect.Value, zv []string) map[string]in
 	for k, v := range fields {
 		v = reflect.Indirect(v)
 		if v.IsValid() && !inSlice(k, zv) {
-			t, ok := v.Interface().(time.Time)
-			if ok && t.IsZero() {
+			if t, ok := v.Interface().(time.Time); ok && t.IsZero() {
 				continue
 			}
 
 			switch v.Interface().(type) {
 			case int, int8, int16, int32, int64:
-				c := v.Int()
-				if c != 0 {
+				if c := v.Int(); c != 0 {
 					m[k] = c
 				}
 			case uint, uint8, uint16, uint32, uint64:
-				c := v.Uint()
-				if c != 0 {
+				if c := v.Uint(); c != 0 {
 					m[k] = c
 				}
 			case float32, float64:
-				c := v.Float()
-				if c != 0.0 {
+				if c := v.Float(); c != 0.0 {
 					m[k] = c
 				}
 			case bool:
-				c := v.Bool()
-				if c != false {
+				if c := v.Bool(); c != false {
 					m[k] = c
 				}
 			case string:
-				c := v.String()
-				if c != "" {
+				if c := v.String(); c != "" {
 					m[k] = c
 				}
 			default:
