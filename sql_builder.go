@@ -11,6 +11,7 @@ type SQLBuilder struct {
 	order  string
 	limit  string
 	offset string
+	hint   string
 	// Extra args to be substituted in the *where* clause
 	args []interface{}
 }
@@ -38,7 +39,7 @@ func (s *SQLBuilder) orderFormat() string {
 
 //queryString Assemble the query statement
 func (s *SQLBuilder) queryString() string {
-	query := fmt.Sprintf("SELECT * FROM %s %s %s %s %s", s.table, s.where, s.orderFormat(), s.limitFormat(), s.offsetFormat())
+	query := fmt.Sprintf("SELECT %s * FROM %s %s %s %s %s",s.hint, s.table, s.where, s.orderFormat(), s.limitFormat(), s.offsetFormat())
 	query = strings.TrimRight(query, " ")
 	query = query + ";"
 
@@ -47,7 +48,7 @@ func (s *SQLBuilder) queryString() string {
 
 //countString Assemble the count statement
 func (s *SQLBuilder) countString() string {
-	query := fmt.Sprintf("SELECT count(*) FROM %s %s %s %s", s.table, s.where, s.limitFormat(), s.offsetFormat())
+	query := fmt.Sprintf("SELECT %s count(*) FROM %s %s %s %s",s.hint, s.table, s.where, s.limitFormat(), s.offsetFormat())
 	query = strings.TrimRight(query, " ")
 	query = query + ";"
 

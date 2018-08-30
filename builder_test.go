@@ -127,6 +127,22 @@ func TestBuilder_Get(t *testing.T) {
 	})
 }
 
+func TestBuilder_Hint(t *testing.T) {
+	RunWithSchema(t, func(t *testing.T) {
+		insert(1)
+		insert(2)
+
+		user := make([]*Users, 0)
+		err := Model(&user).Hint("/*+TDDL:slave()*/").All()
+
+		if err != nil {
+			t.Error(err)
+		}
+
+		fmt.Println(jsonEncode(user))
+	})
+}
+
 func jsonEncode(i interface{}) string {
 	ret, _ := json.Marshal(i)
 	return string(ret)
