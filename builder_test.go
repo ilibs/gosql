@@ -374,10 +374,9 @@ func TestBuilder_Where(t *testing.T) {
 	})
 }
 
-
 type TimeFields struct {
-	CreatedAt   time.Time      `db:"created_at" json:"created_at"`
-	UpdatedAt   time.Time      `db:"updated_at" json:"updated_at"`
+	CreatedAt time.Time `db:"created_at" json:"created_at"`
+	UpdatedAt time.Time `db:"updated_at" json:"updated_at"`
 }
 
 type UserCombs struct {
@@ -403,6 +402,7 @@ func (u *UserCombs) PK() string {
 
 func TestBuilder_NullString(t *testing.T) {
 	RunWithSchema(t, func(t *testing.T) {
+		ct, _ := time.Parse("2006-01-02 15:04:05", "2018-09-02 00:00:00")
 		{
 			user := &Users{
 				Id:     1,
@@ -410,9 +410,10 @@ func TestBuilder_NullString(t *testing.T) {
 				Status: 1,
 				SuccessTime: sql.NullString{
 					String: "2018-09-03 00:00:00",
-					Valid:true,
+					Valid:  true,
 				},
-				Email: "test@test.com",
+				Email:     "test@test.com",
+				CreatedAt: ct,
 			}
 			_, err := Model(user).Create()
 			if err != nil {
@@ -431,14 +432,14 @@ func TestBuilder_NullString(t *testing.T) {
 			fmt.Println(jsonEncode(user))
 		}
 
-
 		{
 			user := &Users{
-				Id:1,
+				Id: 1,
 				SuccessTime: sql.NullString{
 					String: "2018-09-03 00:00:00",
-					Valid:false,
+					Valid:  true,
 				},
+				CreatedAt: ct,
 			}
 
 			err := Model(user).Get()
@@ -450,11 +451,12 @@ func TestBuilder_NullString(t *testing.T) {
 			fmt.Println(jsonEncode(user))
 		}
 
-
 		{
 			user := &UserCombs{
-				Id:1,
-
+				Id: 1,
+				TimeFields: TimeFields{
+					CreatedAt: ct,
+				},
 			}
 			err := Model(user).Get()
 
