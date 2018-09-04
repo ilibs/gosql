@@ -23,8 +23,17 @@ func zeroValueFilter(fields map[string]reflect.Value, zv []string) map[string]in
 	for k, v := range fields {
 		v = reflect.Indirect(v)
 		if v.IsValid() && !inSlice(k, zv) {
-			if t, ok := v.Interface().(time.Time); ok && t.IsZero() {
-				continue
+			if v.Type().Kind() == reflect.Struct {
+				if t, ok := v.Interface().(time.Time); ok {
+					if t.IsZero() {
+						continue
+					}
+				} else {
+					valid := v.FieldByName("Valid").Interface()
+					if va, ok := valid.(bool); ok && !va {
+						continue
+					}
+				}
 			}
 
 			switch v.Interface().(type) {

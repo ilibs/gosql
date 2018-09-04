@@ -7,11 +7,11 @@ import (
 	"strconv"
 
 	"github.com/jmoiron/sqlx"
-	"github.com/jmoiron/sqlx/reflectx"
 )
 
 var (
-	mapper = reflectx.NewMapper("db")
+	mapper = NewReflectMapper("db")
+
 	//Insert database automatically updates fields
 	AUTO_CREATE_TIME_FIELDS = []string{
 		"create_time",
@@ -124,8 +124,7 @@ func (b *Builder) OrderBy(str string) *Builder {
 }
 
 func (b *Builder) reflectModel(autoTime []string) map[string]reflect.Value {
-	uv := reflect.Indirect(reflect.ValueOf(b.model))
-	fields := mapper.FieldMap(uv)
+	fields := mapper.FieldMap(reflect.ValueOf(b.model))
 	if autoTime != nil {
 		structAutoTime(fields, autoTime)
 	}
