@@ -1,8 +1,10 @@
 package gosql
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
+	"log"
 	"strconv"
 	"testing"
 	"time"
@@ -15,6 +17,7 @@ CREATE TABLE users (
 	name  varchar(100) NOT NULL DEFAULT '',
 	email  varchar(100) NOT NULL DEFAULT '',
 	status  int(11) NOT NULL DEFAULT 0,
+    success_time datetime DEFAULT NULL,
 	created_at datetime NOT NULL,
 	updated_at datetime NOT NULL,
   	PRIMARY KEY (id)
@@ -27,12 +30,13 @@ CREATE TABLE users (
 )
 
 type Users struct {
-	Id        int       `db:"id"`
-	Name      string    `db:"name"`
-	Email     string    `db:"email"`
-	Status    int       `db:"status"`
-	CreatedAt time.Time `db:"created_at"`
-	UpdatedAt time.Time `db:"updated_at"`
+	Id          int            `db:"id"`
+	Name        string         `db:"name"`
+	Email       string         `db:"email"`
+	Status      int            `db:"status"`
+	SuccessTime sql.NullString `db:"success_time" json:"success_time"`
+	CreatedAt   time.Time      `db:"created_at" json:"created_at"`
+	UpdatedAt   time.Time      `db:"updated_at" json:"updated_at"`
 }
 
 func (u *Users) DbName() string {
@@ -72,7 +76,10 @@ func insert(id int) {
 		Status: 1,
 		Email:  "test" + strconv.Itoa(id) + "@test.com",
 	}
-	Model(user).Create()
+	_, err := Model(user).Create()
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 func insertStatus(id int, status int) {
@@ -364,5 +371,100 @@ func TestBuilder_Where(t *testing.T) {
 		}
 
 		//fmt.Println(user)
+	})
+}
+
+type TimeFields struct {
+	CreatedAt time.Time `db:"created_at" json:"created_at"`
+	UpdatedAt time.Time `db:"updated_at" json:"updated_at"`
+}
+
+type UserCombs struct {
+	Id          int            `db:"id"`
+	Name        string         `db:"name"`
+	Email       string         `db:"email"`
+	Status      int            `db:"status"`
+	SuccessTime sql.NullString `db:"success_time" json:"success_time"`
+	TimeFields
+}
+
+func (u *UserCombs) DbName() string {
+	return "default"
+}
+
+func (u *UserCombs) TableName() string {
+	return "users"
+}
+
+func (u *UserCombs) PK() string {
+	return "id"
+}
+
+func TestBuilder_NullString(t *testing.T) {
+	RunWithSchema(t, func(t *testing.T) {
+		ct, _ := time.Parse("2006-01-02 15:04:05", "2018-09-02 00:00:00")
+		{
+			user := &Users{
+				Id:     1,
+				Name:   "test",
+				Status: 1,
+				SuccessTime: sql.NullString{
+					String: "2018-09-03 00:00:00",
+					Valid:  true,
+				},
+				Email:     "test@test.com",
+				CreatedAt: ct,
+			}
+			_, err := Model(user).Create()
+			if err != nil {
+				log.Fatal(err)
+			}
+		}
+
+		{
+			user := &Users{}
+			err := Model(user).Where("id=1").Get()
+
+			if err != nil {
+				t.Error(err)
+			}
+
+			fmt.Println(jsonEncode(user))
+		}
+
+		{
+			user := &Users{
+				Id: 1,
+				SuccessTime: sql.NullString{
+					String: "2018-09-03 00:00:00",
+					Valid:  true,
+				},
+				CreatedAt: ct,
+			}
+
+			err := Model(user).Get()
+
+			if err != nil {
+				t.Error(err)
+			}
+
+			fmt.Println(jsonEncode(user))
+		}
+
+		{
+			user := &UserCombs{
+				Id: 1,
+				TimeFields: TimeFields{
+					CreatedAt: ct,
+				},
+			}
+			err := Model(user).Get()
+
+			if err != nil {
+				t.Error(err)
+			}
+
+			fmt.Println(jsonEncode(user))
+		}
 	})
 }
