@@ -221,6 +221,42 @@ gosql.Use("db2").Table("users").Where("id = ?", 1).Count()
 gosql.Table("users",tx).Where("id = ?", 1}).Count()
 ```
 
+
+## sql.Null*
+Now Model support sql.Null* field's, Note, however, that if sql.Null* is also filtered by zero values,For example
+
+```go
+type Users struct {
+	Id          int            `db:"id"`
+	Name        string         `db:"name"`
+	Email       string         `db:"email"`
+	Status      int            `db:"status"`
+	SuccessTime sql.NullString `db:"success_time" json:"success_time"`
+	CreatedAt   time.Time      `db:"created_at" json:"created_at"`
+	UpdatedAt   time.Time      `db:"updated_at" json:"updated_at"`
+}
+
+user := &Users{
+    Id: 1,
+    SuccessTime: sql.NullString{
+        String: "2018-09-03 00:00:00",
+        Valid:  false,
+    }
+}
+
+err := Model(user).Get()
+```
+
+Builder SQL:
+
+```
+Query: SELECT * FROM users WHERE (id=?);
+Args:  []interface {}{1}
+Time:  0.00082s
+```
+
+If `sql.NullString` of `Valid` attribute is false, SQL builder will ignore this zero value
+
 ## Thanks
 
 sqlx https://github.com/jmoiron/sqlx
