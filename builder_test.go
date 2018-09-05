@@ -437,8 +437,9 @@ func TestBuilder_NullString(t *testing.T) {
 				Id: 1,
 				SuccessTime: sql.NullString{
 					String: "2018-09-03 00:00:00",
-					Valid:  false,
+					Valid:  true,
 				},
+				CreatedAt: ct,
 			}
 
 			err := Model(user).Get()
