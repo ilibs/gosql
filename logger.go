@@ -81,3 +81,8 @@ var logger = &defaultLogger{log: log.New(os.Stderr, "", log.LstdFlags)}
 func SetLogger(l Logger) {
 	logger.log = l
 }
+
+//SetLogging set default logger
+func SetLogging(logging bool) {
+	logger.logging = logging
+}
