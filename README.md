@@ -307,6 +307,7 @@ Hook func type supports multiple ways:
 ```
 func (u *Users) BeforeCreate()
 func (u *Users) BeforeCreate() (err error)
+func (u *Users) BeforeCreate(tx *sqlx.Tx)
 func (u *Users) BeforeCreate(tx *sqlx.Tx) (err error)
 ```
 
