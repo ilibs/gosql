@@ -164,6 +164,7 @@ func (b *Builder) All() (err error) {
 func (b *Builder) Create() (lastInsertId int64, err error) {
 	b.initModel()
 	hook := NewHook(b.wrapper)
+	hook.callMethod("BeforeChange", b.modelReflectValue)
 	hook.callMethod("BeforeCreate", b.modelReflectValue)
 	if hook.HasError() > 0 {
 		return 0, hook.Error()
@@ -178,6 +179,7 @@ func (b *Builder) Create() (lastInsertId int64, err error) {
 	}
 
 	hook.callMethod("AfterCreate", b.modelReflectValue)
+	hook.callMethod("AfterChange", b.modelReflectValue)
 
 	if hook.HasError() > 0 {
 		return 0, hook.Error()
@@ -205,6 +207,7 @@ func (b *Builder) generateWhereForPK(m map[string]interface{}) {
 func (b *Builder) Update(zeroValues ...string) (affected int64, err error) {
 	b.initModel()
 	hook := NewHook(b.wrapper)
+	hook.callMethod("BeforeChange", b.modelReflectValue)
 	hook.callMethod("BeforeUpdate", b.modelReflectValue)
 	if hook.HasError() > 0 {
 		return 0, hook.Error()
@@ -222,6 +225,7 @@ func (b *Builder) Update(zeroValues ...string) (affected int64, err error) {
 	}
 
 	hook.callMethod("AfterUpdate", b.modelReflectValue)
+	hook.callMethod("AfterChange", b.modelReflectValue)
 
 	if hook.HasError() > 0 {
 		return 0, hook.Error()
@@ -234,6 +238,7 @@ func (b *Builder) Update(zeroValues ...string) (affected int64, err error) {
 func (b *Builder) Delete(zeroValues ...string) (affected int64, err error) {
 	b.initModel()
 	hook := NewHook(b.wrapper)
+	hook.callMethod("BeforeChange", b.modelReflectValue)
 	hook.callMethod("BeforeDelete", b.modelReflectValue)
 	if hook.HasError() > 0 {
 		return 0, hook.Error()
@@ -249,6 +254,7 @@ func (b *Builder) Delete(zeroValues ...string) (affected int64, err error) {
 	}
 
 	hook.callMethod("AfterDelete", b.modelReflectValue)
+	hook.callMethod("AfterChange", b.modelReflectValue)
 
 	if hook.HasError() > 0 {
 		return 0, hook.Error()
