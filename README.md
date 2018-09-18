@@ -265,10 +265,12 @@ If you have defiend specified methods for a model, it will be called automatical
 
 ```
 // begin transaction
+BeforeChange
 BeforeCreate
 // update timestamp `CreatedAt`, `UpdatedAt`
 // save
 AfterCreate
+AfterChange
 // commit or rollback transaction
 ```
 Example:
@@ -290,9 +292,13 @@ func (u *Users) AfterCreate(tx *sqlx.tx) (err error) {
 }
 ```
 
+> BeforeChange and AfterChange only  used in create/update/delete
+
 All Hooks:
 
 ```
+BeforeChange
+AfterChange
 BeforeCreate
 AfterCreate
 BeforeUpdate
