@@ -10,16 +10,29 @@ import (
 func TestMain(m *testing.M) {
 	configs := make(map[string]*Config)
 
-	dsn := os.Getenv("MYSQL_TEST_DSN")
+	dsn1 := os.Getenv("MYSQL_TEST_DSN1")
 
-	if dsn == "" {
-		dsn = "root:123456@tcp(127.0.0.1:3306)/test?charset=utf8&parseTime=True&loc=Asia%2FShanghai"
+	if dsn1 == "" {
+		dsn1 = "root:123456@tcp(127.0.0.1:3306)/test?charset=utf8&parseTime=True&loc=Asia%2FShanghai"
+	}
+
+	dsn2 := os.Getenv("MYSQL_TEST_DSN2")
+
+	if dsn2 == "" {
+		dsn2 = "root:123456@tcp(127.0.0.1:3306)/test2?charset=utf8&parseTime=True&loc=Asia%2FShanghai"
 	}
 
 	configs["default"] = &Config{
 		Enable:  true,
 		Driver:  "mysql",
-		Dsn:     dsn,
+		Dsn:     dsn1,
+		ShowSql: true,
+	}
+
+	configs["db2"] = &Config{
+		Enable:  true,
+		Driver:  "mysql",
+		Dsn:     dsn2,
 		ShowSql: true,
 	}
 

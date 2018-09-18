@@ -9,8 +9,10 @@ services:
 
 # create test database
 before_install:
-  - mysql -e 'CREATE DATABASE IF NOT EXISTS users;'
-  - export MYSQL_TEST_DSN="travis:@/users?parseTime=true"
+  - mysql -e 'CREATE DATABASE IF NOT EXISTS db1;'
+  - mysql -e 'CREATE DATABASE IF NOT EXISTS db2;'
+  - export MYSQL_TEST_DSN1="travis:@/db1?parseTime=true"
+  - export MYSQL_TEST_DSN2="travis:@/db2?parseTime=true"
 
 script:
   - go test -race -coverprofile=coverage.txt -covermode=atomic

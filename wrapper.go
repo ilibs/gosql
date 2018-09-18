@@ -38,7 +38,7 @@ func (w *Wrapper) db() ISqlx {
 	return DB(w.database).Unsafe()
 }
 
-func ShowSql() *Wrapper  {
+func ShowSql() *Wrapper {
 	w := Use(Default)
 	w.logging = true
 	return w
@@ -165,7 +165,7 @@ func (w *Wrapper) Tx(fn func(tx *sqlx.Tx) error) (err error) {
 //Table database handler from to table name
 //for example gosql.Use("db2").Table("users")
 func (w *Wrapper) Table(t string) *Mapper {
-	return Table(t, w.tx)
+	return &Mapper{wrapper: w, SQLBuilder: SQLBuilder{table: t}}
 }
 
 //Import SQL DDL from sql file

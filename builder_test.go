@@ -27,6 +27,22 @@ CREATE TABLE users (
 	dropSchema = `
 	drop table users
 `
+
+	createSchema2 = `
+CREATE TABLE posts (
+	id int(11) unsigned NOT NULL AUTO_INCREMENT,
+	title  varchar(100) NOT NULL DEFAULT '',
+	content  varchar(100) NOT NULL DEFAULT '',
+	status  int(11) NOT NULL DEFAULT 0,
+	created_at datetime NOT NULL,
+	updated_at datetime NOT NULL,
+  	PRIMARY KEY (id)
+)ENGINE=InnoDB CHARSET=utf8;
+`
+
+	dropSchema2 = `
+	drop table posts
+`
 )
 
 type Users struct {
@@ -51,6 +67,27 @@ func (u *Users) PK() string {
 	return "id"
 }
 
+type Posts struct {
+	Id        int       `db:"id"`
+	Title     string    `db:"title"`
+	Content   string    `db:"content"`
+	Status    int       `db:"status"`
+	CreatedAt time.Time `db:"created_at" json:"created_at"`
+	UpdatedAt time.Time `db:"updated_at" json:"updated_at"`
+}
+
+func (u *Posts) DbName() string {
+	return "db2"
+}
+
+func (u *Posts) TableName() string {
+	return "posts"
+}
+
+func (u *Posts) PK() string {
+	return "id"
+}
+
 func RunWithSchema(t *testing.T, test func(t *testing.T)) {
 	db := DB()
 	defer func() {
@@ -61,6 +98,24 @@ func RunWithSchema(t *testing.T, test func(t *testing.T)) {
 	}()
 
 	_, err := db.Exec(createSchema)
+
+	if err != nil {
+		t.Fatalf("create schema error:%s", err)
+	}
+
+	test(t)
+}
+
+func RunWithSchema2(t *testing.T, test func(t *testing.T)) {
+	db := DB("db2")
+	defer func() {
+		_, err := db.Exec(dropSchema2)
+		if err != nil {
+			t.Error(err)
+		}
+	}()
+
+	_, err := db.Exec(createSchema2)
 
 	if err != nil {
 		t.Fatalf("create schema error:%s", err)

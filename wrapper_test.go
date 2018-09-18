@@ -111,9 +111,33 @@ func TestQueryRowx(t *testing.T) {
 }
 
 func TestUse(t *testing.T) {
-	RunWithSchema(t, func(t *testing.T) {
-		db := Use("default")
-		_, err := db.Exec("insert into users(name,email,created_at,updated_at) value(?,?,?,?)", "test", "test@gmail.com", time.Now(), time.Now())
+	RunWithSchema2(t, func(t *testing.T) {
+		db := Use("db2")
+		_, err := db.Exec("insert into posts(title,content,created_at,updated_at) value(?,?,?,?)", "test", "test content", time.Now(), time.Now())
+
+		if err != nil {
+			t.Error(err)
+		}
+	})
+}
+
+func TestUseTable(t *testing.T) {
+	RunWithSchema2(t, func(t *testing.T) {
+		post := &Posts{
+			Title:   "test",
+			Content: "test content",
+			Status:  1,
+		}
+
+		_, err := Model(post).Create()
+
+		if err != nil {
+			t.Error(err)
+		}
+
+		_, err = Use("db2").Table("posts").Where("id = ?", 1).Update(map[string]interface{}{
+			"title": "new test",
+		})
 
 		if err != nil {
 			t.Error(err)
