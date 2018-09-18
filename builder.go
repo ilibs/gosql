@@ -37,7 +37,8 @@ type IModel interface {
 }
 
 type Builder struct {
-	model   interface{}
+	model             interface{}
+	modelReflectValue reflect.Value
 	SQLBuilder
 	wrapper *Wrapper
 }
@@ -69,6 +70,7 @@ func (b *Builder) initModel() {
 	if m, ok := b.model.(IModel); ok {
 		b.wrapper.database = m.DbName()
 		b.table = m.TableName()
+		b.modelReflectValue = reflect.ValueOf(m)
 	} else {
 		value := reflect.ValueOf(b.model)
 		if value.Kind() != reflect.Ptr {
@@ -87,6 +89,7 @@ func (b *Builder) initModel() {
 		if m, ok := reflect.Indirect(reflect.New(tp.Elem())).Interface().(IModel); ok {
 			b.wrapper.database = m.DbName()
 			b.table = m.TableName()
+			b.modelReflectValue = reflect.ValueOf(m)
 		} else {
 			log.Fatalf("model argument must implementation IModel interface or slice []IModel and pointer,but get %#v", b.model)
 		}
@@ -124,7 +127,7 @@ func (b *Builder) OrderBy(str string) *Builder {
 }
 
 func (b *Builder) reflectModel(autoTime []string) map[string]reflect.Value {
-	fields := mapper.FieldMap(reflect.ValueOf(b.model))
+	fields := mapper.FieldMap(b.modelReflectValue)
 	if autoTime != nil {
 		structAutoTime(fields, autoTime)
 	}
@@ -138,7 +141,17 @@ func (b *Builder) Get(zeroValues ...string) (err error) {
 	//If where is empty, the primary key where condition is generated automatically
 	b.generateWhere(m)
 
-	return b.db().Get(b.model, b.queryString(), b.args...)
+	err = b.db().Get(b.model, b.queryString(), b.args...)
+
+	if err == nil {
+		hook := NewHook(b.wrapper)
+		hook.callMethod("AfterFind", b.modelReflectValue)
+		if hook.HasError() > 0 {
+			return hook.Error()
+		}
+	}
+
+	return err
 }
 
 //All get data rows from to Struct
@@ -150,6 +163,11 @@ func (b *Builder) All() (err error) {
 //Create data from to Struct
 func (b *Builder) Create() (lastInsertId int64, err error) {
 	b.initModel()
+	hook := NewHook(b.wrapper)
+	hook.callMethod("BeforeCreate", b.modelReflectValue)
+	if hook.HasError() > 0 {
+		return 0, hook.Error()
+	}
 
 	fields := b.reflectModel(AUTO_CREATE_TIME_FIELDS)
 	m := structToMap(fields)
@@ -157,6 +175,12 @@ func (b *Builder) Create() (lastInsertId int64, err error) {
 	result, err := b.db().Exec(b.insertString(m), b.args...)
 	if err != nil {
 		return 0, err
+	}
+
+	hook.callMethod("AfterCreate", b.modelReflectValue)
+
+	if hook.HasError() > 0 {
+		return 0, hook.Error()
 	}
 
 	return result.LastInsertId()
@@ -180,6 +204,11 @@ func (b *Builder) generateWhereForPK(m map[string]interface{}) {
 //gosql.Model(&User{Id:1,Status:0}).Update("status")
 func (b *Builder) Update(zeroValues ...string) (affected int64, err error) {
 	b.initModel()
+	hook := NewHook(b.wrapper)
+	hook.callMethod("BeforeUpdate", b.modelReflectValue)
+	if hook.HasError() > 0 {
+		return 0, hook.Error()
+	}
 
 	fields := b.reflectModel(AUTO_UPDATE_TIME_FIELDS)
 	m := zeroValueFilter(fields, zeroValues)
@@ -192,12 +221,23 @@ func (b *Builder) Update(zeroValues ...string) (affected int64, err error) {
 		return 0, err
 	}
 
+	hook.callMethod("AfterUpdate", b.modelReflectValue)
+
+	if hook.HasError() > 0 {
+		return 0, hook.Error()
+	}
+
 	return result.RowsAffected()
 }
 
 //gosql.Model(&User{Id:1}).Delete()
 func (b *Builder) Delete(zeroValues ...string) (affected int64, err error) {
 	b.initModel()
+	hook := NewHook(b.wrapper)
+	hook.callMethod("BeforeDelete", b.modelReflectValue)
+	if hook.HasError() > 0 {
+		return 0, hook.Error()
+	}
 
 	m := zeroValueFilter(b.reflectModel(nil), zeroValues)
 	//If where is empty, the primary key where condition is generated automatically
@@ -207,6 +247,13 @@ func (b *Builder) Delete(zeroValues ...string) (affected int64, err error) {
 	if err != nil {
 		return 0, err
 	}
+
+	hook.callMethod("AfterDelete", b.modelReflectValue)
+
+	if hook.HasError() > 0 {
+		return 0, hook.Error()
+	}
+
 	return result.RowsAffected()
 }
 

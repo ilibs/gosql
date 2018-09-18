@@ -257,6 +257,59 @@ Time:  0.00082s
 
 If `sql.NullString` of `Valid` attribute is false, SQL builder will ignore this zero value
 
+
+## Hooks
+Hooks are functions that are called before or after creation/querying/updating/deletion.
+
+If you have defiend specified methods for a model, it will be called automatically when creating, updating, querying, deleting, and if any callback returns an error, `gosql` will stop future operations and rollback current transaction.
+
+```
+// begin transaction
+BeforeCreate
+// update timestamp `CreatedAt`, `UpdatedAt`
+// save
+AfterCreate
+// commit or rollback transaction
+```
+Example:
+
+```go
+func (u *Users) BeforeCreate() (err error) {
+  if u.IsValid() {
+    err = errors.New("can't save invalid data")
+  }
+  return
+}
+
+func (u *Users) AfterCreate(tx *sqlx.tx) (err error) {
+  if u.ID == 1 {
+    Model(u,tx).Update("role", "admin")
+  }
+  return
+}
+```
+
+All Hooks:
+
+```
+BeforeCreate
+AfterCreate
+BeforeUpdate
+AfterUpdate
+BeforeDelete
+AfterDelete
+AfterFind
+```
+
+Hook func type supports multiple ways:
+
+```
+func (u *Users) BeforeCreate()
+func (u *Users) BeforeCreate() (err error)
+func (u *Users) BeforeCreate(tx *sqlx.Tx) (err error)
+```
+
+
 ## Thanks
 
 sqlx https://github.com/jmoiron/sqlx
