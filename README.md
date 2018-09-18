@@ -283,7 +283,8 @@ func (u *Users) BeforeCreate() (err error) {
 
 func (u *Users) AfterCreate(tx *sqlx.tx) (err error) {
   if u.Id == 1 {
-    Model(u,tx).Update("role", "admin")
+    u.Email = "after@test.com"
+    Model(u,tx).Update()
   }
   return
 }
