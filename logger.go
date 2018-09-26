@@ -41,6 +41,10 @@ func (q *QueryStatus) String() string {
 		lines = append(lines, fmt.Sprintf(fmtLogQuery, query))
 	}
 
+	if args, ok := q.Args.([]interface{}); ok && len(args) == 0 {
+		q.Args = nil
+	}
+
 	if q.Args != nil {
 		lines = append(lines, fmt.Sprintf(fmtLogArgs, q.Args))
 	}
