@@ -51,6 +51,7 @@ func (h *Hook) Err(err error) error {
 	return err
 }
 
+// HasError has errors
 func (h *Hook) HasError() int {
 	return len(h.Errs)
 }

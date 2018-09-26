@@ -137,6 +137,8 @@ func (b *Builder) reflectModel(autoTime []string) map[string]reflect.Value {
 //All get data row from to Struct
 func (b *Builder) Get(zeroValues ...string) (err error) {
 	b.initModel()
+	hook := NewHook(b.wrapper)
+	hook.callMethod("BeforeFind", b.modelReflectValue)
 	m := zeroValueFilter(b.reflectModel(nil), zeroValues)
 	//If where is empty, the primary key where condition is generated automatically
 	b.generateWhere(m)
@@ -144,7 +146,6 @@ func (b *Builder) Get(zeroValues ...string) (err error) {
 	err = b.db().Get(b.model, b.queryString(), b.args...)
 
 	if err == nil {
-		hook := NewHook(b.wrapper)
 		hook.callMethod("AfterFind", b.modelReflectValue)
 		if hook.HasError() > 0 {
 			return hook.Error()

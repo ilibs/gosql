@@ -305,6 +305,7 @@ BeforeUpdate
 AfterUpdate
 BeforeDelete
 AfterDelete
+BeforeFind
 AfterFind
 ```
 
