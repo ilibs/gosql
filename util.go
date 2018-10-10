@@ -29,7 +29,7 @@ func IsZero(val reflect.Value) bool {
 	case reflect.Bool:
 		return val.Bool() == false
 	case reflect.Float32, reflect.Float64:
-		return val.Float() == 0.0
+		return val.Float() == 0
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 		return val.Int() == 0
 	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
