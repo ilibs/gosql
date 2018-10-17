@@ -160,6 +160,7 @@ func TestBuilder_Get(t *testing.T) {
 			//fmt.Println(user)
 
 		}
+
 		{
 			user := &Users{
 				Name:   "test1",
