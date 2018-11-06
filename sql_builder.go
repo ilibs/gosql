@@ -39,7 +39,7 @@ func (s *SQLBuilder) orderFormat() string {
 
 //queryString Assemble the query statement
 func (s *SQLBuilder) queryString() string {
-	query := fmt.Sprintf("SELECT %s * FROM %s %s %s %s %s",s.hint, s.table, s.where, s.orderFormat(), s.limitFormat(), s.offsetFormat())
+	query := fmt.Sprintf("SELECT %s * FROM `%s` %s %s %s %s",s.hint, s.table, s.where, s.orderFormat(), s.limitFormat(), s.offsetFormat())
 	query = strings.TrimRight(query, " ")
 	query = query + ";"
 
@@ -48,7 +48,7 @@ func (s *SQLBuilder) queryString() string {
 
 //countString Assemble the count statement
 func (s *SQLBuilder) countString() string {
-	query := fmt.Sprintf("SELECT %s count(*) FROM %s %s %s %s",s.hint, s.table, s.where, s.limitFormat(), s.offsetFormat())
+	query := fmt.Sprintf("SELECT %s count(*) FROM `%s` %s %s %s",s.hint, s.table, s.where, s.limitFormat(), s.offsetFormat())
 	query = strings.TrimRight(query, " ")
 	query = query + ";"
 
@@ -64,7 +64,7 @@ func (s *SQLBuilder) insertString(params map[string]interface{}) string {
 		s.args = append(s.args, params[k])
 	}
 
-	return fmt.Sprintf("INSERT INTO %s (%s) VALUES(%s);", s.table, strings.Join(cols, ","), strings.Join(vals, ","))
+	return fmt.Sprintf("INSERT INTO `%s` (%s) VALUES(%s);", s.table, strings.Join(cols, ","), strings.Join(vals, ","))
 }
 
 //updateString Assemble the update statement
@@ -78,7 +78,7 @@ func (s *SQLBuilder) updateString(params map[string]interface{}) string {
 	args = append(args,s.args...)
 	s.args = args
 
-	query := fmt.Sprintf("UPDATE %s SET %s %s", s.table, strings.Join(updateFields, ","), s.where)
+	query := fmt.Sprintf("UPDATE `%s` SET %s %s", s.table, strings.Join(updateFields, ","), s.where)
 	query = strings.TrimRight(query, " ")
 	query = query + ";"
 	return query
@@ -86,7 +86,7 @@ func (s *SQLBuilder) updateString(params map[string]interface{}) string {
 
 //deleteString Assemble the delete statement
 func (s *SQLBuilder) deleteString() string {
-	query := fmt.Sprintf("DELETE FROM %s %s", s.table, s.where)
+	query := fmt.Sprintf("DELETE FROM `%s` %s", s.table, s.where)
 	query = strings.TrimRight(query, " ")
 	query = query + ";"
 	return query
