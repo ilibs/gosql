@@ -82,6 +82,11 @@ func (b *Builder) initModel() {
 		}
 
 		tp := reflect.Indirect(value).Type()
+
+		if tp.Kind() == reflect.Ptr {
+			tp = reflect.Indirect(value).Elem().Type()
+		}
+
 		if tp.Kind() != reflect.Slice {
 			log.Fatalf("model argument must slice, but get %#v", b.model)
 		}
