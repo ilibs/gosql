@@ -83,6 +83,15 @@ func (b *Builder) initModel() {
 
 		tp := reflect.Indirect(value).Type()
 
+		// If b.model is *interface{} have to do a second Elem
+		//
+		// For example,
+		// var m interface{}
+		// mm := make([]*Model,0)
+		// mm = append(mm, &Model{Id:1})
+		// m = mm
+		// reflect.Indirect(reflect.ValueOf(&m)).Elem().Type().Kind() == reflect.Slice
+
 		if tp.Kind() == reflect.Ptr {
 			tp = reflect.Indirect(value).Elem().Type()
 		}
