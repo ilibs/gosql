@@ -21,4 +21,4 @@ after_success:
     - bash <(curl -s https://codecov.io/bash)
 
 notifications:
-   webhooks: https://oapi.dingtalk.com/robot/send?access_token=585ec926ed59ac42f162c9b3efdac56509113616a4681f256d3313845bf9a11c
+   webhooks: https://oapi.dingtalk.com/robot/send?access_token=321465c4ca2e032caea5e3daf85124c1ba894c986df8f4903c525477e9bdb14f
