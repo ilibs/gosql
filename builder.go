@@ -92,7 +92,7 @@ func (b *Builder) initModel() {
 		// m = mm
 		// reflect.Indirect(reflect.ValueOf(&m)).Elem().Type().Kind() == reflect.Slice
 
-		if tp.Kind() == reflect.Ptr {
+		if tp.Kind() == reflect.Interface {
 			tp = reflect.Indirect(value).Elem().Type()
 		}
 
