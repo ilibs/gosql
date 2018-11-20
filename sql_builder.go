@@ -39,7 +39,7 @@ func (s *SQLBuilder) orderFormat() string {
 
 //queryString Assemble the query statement
 func (s *SQLBuilder) queryString() string {
-	query := fmt.Sprintf("SELECT %s * FROM `%s` %s %s %s %s",s.hint, s.table, s.where, s.orderFormat(), s.limitFormat(), s.offsetFormat())
+	query := fmt.Sprintf("SELECT %s * FROM `%s` %s %s %s %s", s.hint, s.table, s.where, s.orderFormat(), s.limitFormat(), s.offsetFormat())
 	query = strings.TrimRight(query, " ")
 	query = query + ";"
 
@@ -48,7 +48,7 @@ func (s *SQLBuilder) queryString() string {
 
 //countString Assemble the count statement
 func (s *SQLBuilder) countString() string {
-	query := fmt.Sprintf("SELECT %s count(*) FROM `%s` %s %s %s",s.hint, s.table, s.where, s.limitFormat(), s.offsetFormat())
+	query := fmt.Sprintf("SELECT %s count(*) FROM `%s` %s", s.hint, s.table, s.where)
 	query = strings.TrimRight(query, " ")
 	query = query + ";"
 
@@ -70,12 +70,12 @@ func (s *SQLBuilder) insertString(params map[string]interface{}) string {
 //updateString Assemble the update statement
 func (s *SQLBuilder) updateString(params map[string]interface{}) string {
 	var updateFields []string
-	args := make([]interface{},0)
+	args := make([]interface{}, 0)
 	for _, k := range sortedParamKeys(params) {
 		updateFields = append(updateFields, fmt.Sprintf("%s=?", fmt.Sprintf("`%s`", k)))
 		args = append(args, params[k])
 	}
-	args = append(args,s.args...)
+	args = append(args, s.args...)
 	s.args = args
 
 	query := fmt.Sprintf("UPDATE `%s` SET %s %s", s.table, strings.Join(updateFields, ","), s.where)
