@@ -99,7 +99,7 @@ func structToMap(fields map[string]reflect.Value) map[string]interface{} {
 	return m
 }
 
-// structAutoTime  auto set created_at updated_at
+// fillPrimaryKey is created fill primary key
 func fillPrimaryKey(v reflect.Value, value int64) {
 	v = reflect.Indirect(v)
 	if v.IsValid() {
