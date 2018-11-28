@@ -40,7 +40,8 @@ type Builder struct {
 	model             interface{}
 	modelReflectValue reflect.Value
 	SQLBuilder
-	wrapper *Wrapper
+	modelEntity IModel
+	wrapper     *Wrapper
 }
 
 // Model construct SQL from Struct
@@ -68,6 +69,7 @@ func (b *Builder) db() ISqlx {
 
 func (b *Builder) initModel() {
 	if m, ok := b.model.(IModel); ok {
+		b.modelEntity = m
 		b.wrapper.database = m.DbName()
 		b.table = m.TableName()
 		b.modelReflectValue = reflect.ValueOf(m)
@@ -101,6 +103,7 @@ func (b *Builder) initModel() {
 		}
 
 		if m, ok := reflect.Indirect(reflect.New(tp.Elem())).Interface().(IModel); ok {
+			b.modelEntity = m
 			b.wrapper.database = m.DbName()
 			b.table = m.TableName()
 			b.modelReflectValue = reflect.ValueOf(m)
@@ -200,7 +203,17 @@ func (b *Builder) Create() (lastInsertId int64, err error) {
 		return 0, hook.Error()
 	}
 
-	return result.LastInsertId()
+	lastId, err := result.LastInsertId()
+
+	if err != nil {
+		return 0, err
+	}
+
+	if v, ok := fields[b.modelEntity.PK()]; ok {
+		fillPrimaryKey(v, lastId)
+	}
+
+	return lastId, err
 }
 
 func (b *Builder) generateWhere(m map[string]interface{}) {

@@ -346,7 +346,7 @@ func TestBuilder_Count(t *testing.T) {
 func TestBuilder_Create(t *testing.T) {
 	RunWithSchema(t, func(t *testing.T) {
 		user := &Users{
-			Id:    1,
+			//Id:    1,
 			Name:  "test",
 			Email: "test@test.com",
 		}
@@ -358,6 +358,10 @@ func TestBuilder_Create(t *testing.T) {
 
 		if id != 1 {
 			t.Error("lastInsertId error", id)
+		}
+
+		if int(id) != user.Id {
+			t.Error("fill primaryKey error", id)
 		}
 	})
 }

@@ -99,6 +99,17 @@ func structToMap(fields map[string]reflect.Value) map[string]interface{} {
 	return m
 }
 
+// structAutoTime  auto set created_at updated_at
+func fillPrimaryKey(v reflect.Value, value int64) {
+	v = reflect.Indirect(v)
+	if v.IsValid() {
+		switch v.Kind() {
+		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64, reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+			v.SetInt(value)
+		}
+	}
+}
+
 // sortedParamKeys Sorts the param names given - map iteration order is explicitly random in Go
 // but we need params in a defined order to avoid unexpected results.
 func sortedParamKeys(params map[string]interface{}) []string {
