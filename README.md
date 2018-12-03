@@ -262,7 +262,7 @@ If `sql.NullString` of `Valid` attribute is false, SQL builder will ignore this 
 Reference GORM Expr, Resolve update field self-update problem
 ```go
 Table("users").Update(map[string]interface{}{
-    "id":1,
+    "id":2,
     "count":gosql.Expr("count+?",1)
 })
 //Builder SQL
