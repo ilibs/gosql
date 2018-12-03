@@ -178,6 +178,51 @@ func TestSelect(t *testing.T) {
 	})
 }
 
+
+func TestQueryxIn(t *testing.T) {
+	RunWithSchema(t, func(t *testing.T) {
+		insert(1)
+		insert(2)
+		insert(4)
+		insert(5)
+		insert(6)
+
+		rows, err := Queryx("select * from users where id in (?)",[]int{1,2,3})
+
+		if err != nil {
+			t.Error(err)
+		}
+
+		for rows.Next() {
+			user := &Users{}
+			err = rows.StructScan(user)
+			if err != nil {
+				t.Error(err)
+			}
+		}
+	})
+}
+
+func TestSelectIn(t *testing.T) {
+	RunWithSchema(t, func(t *testing.T) {
+		insert(1)
+		insert(2)
+		insert(4)
+		insert(5)
+		insert(6)
+		db := Use("default")
+		user := make([]*Users, 0)
+		err := db.Select(&user, "select * from users where id in(?)",[]int{1,2,3})
+
+		if err != nil {
+			t.Error(err)
+		}
+
+		fmt.Println(jsonEncode(user))
+	})
+}
+
+
 func TestTx(t *testing.T) {
 	RunWithSchema(t, func(t *testing.T) {
 		//1

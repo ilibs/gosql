@@ -2,3 +2,4 @@
 
 ### Added
 - Added `gosql.Expr` Reference GORM Expr
+- Added `In` Queries support

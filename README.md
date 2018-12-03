@@ -269,6 +269,28 @@ Table("users").Update(map[string]interface{}{
 //UPDATE `users` SET `count`=count + ?,`id`=?; [1 2]
 ```
 
+
+## "In" Queries
+
+Because database/sql does not inspect your query and it passes your arguments directly to the driver, it makes dealing with queries with IN clauses difficult:
+
+```go
+SELECT * FROM users WHERE level IN (?);
+```
+
+`sqlx.In` is encapsulated In `gosql` and can be queried using the following schema
+
+```go
+var levels = []int{4, 6, 7}
+rows, err := gosql.Queryx("SELECT * FROM users WHERE level IN (?);", levels)
+
+//or
+
+user := make([]*Users, 0)
+err := gosql.Select(&user, "select * from users where id in(?)",[]int{1,2,3})
+```
+
+
 ## Hooks
 Hooks are functions that are called before or after creation/querying/updating/deletion.
 

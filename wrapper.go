@@ -6,6 +6,7 @@ import (
 	"context"
 	"database/sql"
 	"os"
+	"reflect"
 	"strings"
 	"time"
 
@@ -18,6 +19,7 @@ type ISqlx interface {
 	Get(dest interface{}, query string, args ...interface{}) error
 	Select(dest interface{}, query string, args ...interface{}) error
 	Exec(query string, args ...interface{}) (sql.Result, error)
+	Rebind(query string) string
 }
 
 var (
@@ -42,6 +44,30 @@ func ShowSql() *Wrapper {
 	w := Use(Default)
 	w.logging = true
 	return w
+}
+
+func (w *Wrapper) argsIn(query string, args []interface{}) (string, []interface{}, error) {
+	newArgs := make([]interface{}, 0)
+
+	for _, v := range args {
+		if reflect.TypeOf(v).Kind() == reflect.Slice {
+			newQuery, inArgs, err := sqlx.In(query, v)
+			if err != nil {
+				return query, inArgs, err
+			}
+			newArgs = append(newArgs, inArgs...)
+			query = w.db().Rebind(newQuery)
+		} else {
+			newArgs = append(newArgs, v)
+		}
+	}
+
+	return query, newArgs, nil
+}
+
+//Rebind wrapper sqlx.Rebind
+func (w *Wrapper) Rebind(query string) string {
+	return w.db().Rebind(query)
 }
 
 //Exec wrapper sqlx.Exec
@@ -72,7 +98,12 @@ func (w *Wrapper) Queryx(query string, args ...interface{}) (rows *sqlx.Rows, er
 		}, w.logging)
 	}(time.Now())
 
-	return w.db().Queryx(query, args...)
+	query, newArgs, err := w.argsIn(query, args)
+	if err != nil {
+		return nil,err
+	}
+
+	return w.db().Queryx(query, newArgs...)
 }
 
 //QueryRowx wrapper sqlx.QueryRowx
@@ -87,7 +118,9 @@ func (w *Wrapper) QueryRowx(query string, args ...interface{}) (rows *sqlx.Row) 
 		}, w.logging)
 	}(time.Now())
 
-	return w.db().QueryRowx(query, args...)
+	query, newArgs, _ := w.argsIn(query, args)
+
+	return w.db().QueryRowx(query, newArgs...)
 }
 
 //Get wrapper sqlx.Get
@@ -102,7 +135,12 @@ func (w *Wrapper) Get(dest interface{}, query string, args ...interface{}) (err 
 		}, w.logging)
 	}(time.Now())
 
-	return w.db().Get(dest, query, args...)
+	query, newArgs, err := w.argsIn(query, args)
+	if err != nil {
+		return err
+	}
+
+	return w.db().Get(dest, query, newArgs...)
 }
 
 //Select wrapper sqlx.Select
@@ -117,7 +155,12 @@ func (w *Wrapper) Select(dest interface{}, query string, args ...interface{}) (e
 		}, w.logging)
 	}(time.Now())
 
-	return w.db().Select(dest, query, args...)
+	query, newArgs, err := w.argsIn(query, args)
+	if err != nil {
+		return err
+	}
+
+	return w.db().Select(dest, query, newArgs...)
 }
 
 //Txx the transaction with context
