@@ -71,9 +71,15 @@ func (s *SQLBuilder) insertString(params map[string]interface{}) string {
 func (s *SQLBuilder) updateString(params map[string]interface{}) string {
 	var updateFields []string
 	args := make([]interface{}, 0)
+
 	for _, k := range sortedParamKeys(params) {
-		updateFields = append(updateFields, fmt.Sprintf("%s=?", fmt.Sprintf("`%s`", k)))
-		args = append(args, params[k])
+		if e, ok := params[k].(*expr); ok {
+			updateFields = append(updateFields, fmt.Sprintf("%s=%s", fmt.Sprintf("`%s`", k), e.expr))
+			args = append(args, e.args...)
+		} else {
+			updateFields = append(updateFields, fmt.Sprintf("%s=?", fmt.Sprintf("`%s`", k)))
+			args = append(args, params[k])
+		}
 	}
 	args = append(args, s.args...)
 	s.args = args

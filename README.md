@@ -258,6 +258,17 @@ Time:  0.00082s
 If `sql.NullString` of `Valid` attribute is false, SQL builder will ignore this zero value
 
 
+## gosql.Expr
+Reference GORM Expr, Resolve update field self-update problem
+```go
+Table("users").Update(map[string]interface{}{
+    "id":1,
+    "count":gosql.Expr("count+?",1)
+})
+//Builder SQL
+//UPDATE `users` SET `count`=count + ?,`id`=?; [1 2]
+```
+
 ## Hooks
 Hooks are functions that are called before or after creation/querying/updating/deletion.
 
