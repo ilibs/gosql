@@ -227,6 +227,25 @@ func TestBuilder_All(t *testing.T) {
 	})
 }
 
+func TestBuilder_InAll(t *testing.T) {
+	RunWithSchema(t, func(t *testing.T) {
+		insert(1)
+		insert(2)
+		insert(3)
+		insert(4)
+		insert(5)
+
+		user := make([]*Users, 0)
+		err := Model(&user).Where("status = ? and id in(?)",1,[]int{1,3,4}).All()
+
+		if err != nil {
+			t.Error(err)
+		}
+
+		fmt.Println(jsonEncode(user))
+	})
+}
+
 func TestBuilder_Update(t *testing.T) {
 	RunWithSchema(t, func(t *testing.T) {
 		insert(1)

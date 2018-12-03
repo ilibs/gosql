@@ -6,7 +6,6 @@ import (
 	"context"
 	"database/sql"
 	"os"
-	"reflect"
 	"strings"
 	"time"
 
@@ -48,21 +47,13 @@ func ShowSql() *Wrapper {
 
 func (w *Wrapper) argsIn(query string, args []interface{}) (string, []interface{}, error) {
 	newArgs := make([]interface{}, 0)
+	newQuery, newArgs, err := sqlx.In(query, args...)
 
-	for _, v := range args {
-		if reflect.TypeOf(v).Kind() == reflect.Slice {
-			newQuery, inArgs, err := sqlx.In(query, v)
-			if err != nil {
-				return query, inArgs, err
-			}
-			newArgs = append(newArgs, inArgs...)
-			query = w.db().Rebind(newQuery)
-		} else {
-			newArgs = append(newArgs, v)
-		}
+	if err != nil {
+		return query, args, err
 	}
 
-	return query, newArgs, nil
+	return newQuery, newArgs, nil
 }
 
 //Rebind wrapper sqlx.Rebind
@@ -100,7 +91,7 @@ func (w *Wrapper) Queryx(query string, args ...interface{}) (rows *sqlx.Rows, er
 
 	query, newArgs, err := w.argsIn(query, args)
 	if err != nil {
-		return nil,err
+		return nil, err
 	}
 
 	return w.db().Queryx(query, newArgs...)
