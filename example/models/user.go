@@ -18,7 +18,7 @@ func (u *Users) DbName() string {
 }
 
 func (u *Users) TableName() string {
-	return "users"
+	return "moment_users"
 }
 
 func (u *Users) PK() string {

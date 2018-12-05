@@ -9,7 +9,6 @@ import (
 // RelationOne is get the associated relational data for a single piece of data
 func RelationOne(data interface{}) error {
 	refVal := reflect.Indirect(reflect.ValueOf(data))
-
 	t := refVal.Type()
 	for i := 0; i < t.NumField(); i++ {
 		val := t.Field(i).Tag.Get("relation")

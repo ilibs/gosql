@@ -141,8 +141,10 @@ func (w *Wrapper) Get(dest interface{}, query string, args ...interface{}) (err 
 		return err
 	}
 
-	// relation data fill
-	err = RelationOne(dest)
+	if reflect.Indirect(refVal).Type().Kind() == reflect.Struct {
+		// relation data fill
+		err = RelationOne(dest)
+	}
 
 	if err == nil {
 		hook.callMethod("AfterFind", refVal)

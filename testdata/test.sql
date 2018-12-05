@@ -112,12 +112,12 @@ VALUES
 UNLOCK TABLES;
 
 
-# Dump of table users
+# Dump of table moment_users
 # ------------------------------------------------------------
 
-DROP TABLE IF EXISTS `users`;
+DROP TABLE IF EXISTS `moment_users`;
 
-CREATE TABLE `users` (
+CREATE TABLE `moment_users` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `type` int(11) NOT NULL DEFAULT '1' COMMENT '1 普通用户 2发布用户',
   `openid` varchar(64) NOT NULL,
@@ -133,12 +133,12 @@ CREATE TABLE `users` (
   UNIQUE KEY `un_openid` (`openid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-LOCK TABLES `users` WRITE;
-/*!40000 ALTER TABLE `users` DISABLE KEYS */;
+LOCK TABLES `moment_users` WRITE;
+/*!40000 ALTER TABLE `moment_users` DISABLE KEYS */;
 
-INSERT INTO `users` (`id`, `type`, `openid`, `nickname`, `avatar`, `city`, `country`, `gender`, `province`, `created_at`, `updated_at`)
+INSERT INTO `moment_users` (`id`, `type`, `openid`, `nickname`, `avatar`, `city`, `country`, `gender`, `province`, `created_at`, `updated_at`)
 VALUES
 	(5,1,'ovEry5Nu-V873UoenVcchvnsL9Ng','豆爸&玥爸','https://wx.qlogo.cn/mmopen/vi_32/ajNVdqHZLLAa1A2huibNjHbb5zWCfLDrPzNJAOHcCgflUOthH1ZeU7lVZZEelsckFU9jB2JOFVLfEgyTeWc0AjA/132','Songjiang','China',1,'Shanghai','2018-11-28 10:29:55','2018-11-28 10:29:55');
 
-/*!40000 ALTER TABLE `users` ENABLE KEYS */;
+/*!40000 ALTER TABLE `moment_users` ENABLE KEYS */;
 UNLOCK TABLES;
