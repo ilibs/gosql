@@ -10,7 +10,7 @@ import (
 
 type UserMoment struct {
 	models.Moments
-	User   *Users    `json:"user" db:"-" relation:"user_id,id"`
+	User   *models.Users    `json:"user" db:"-" relation:"user_id,id"`
 	Photos []*models.Photos `json:"photos" db:"-" relation:"id,moment_id"`
 }
 
@@ -18,20 +18,20 @@ func TestRelationOne(t *testing.T) {
 	moment := &UserMoment{}
 	err := Model(moment).Where("status = 1 and id = ?",14).Get()
 
+	b , _ :=json.MarshalIndent(moment,"","	")
+	fmt.Println(string(b), err)
+
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	if moment.User.Name == "" {
+	if moment.User.NickName == "" {
 		t.Fatal("relation one-to-one data error[user]")
 	}
 
 	if len(moment.Photos) == 0 {
 		t.Fatal("relation get one-to-many data error[photos]")
 	}
-
-	b , _ :=json.MarshalIndent(moment,"","	")
-	fmt.Println(string(b), err)
 }
 
 func TestRelationAll(t *testing.T) {
@@ -45,7 +45,7 @@ func TestRelationAll(t *testing.T) {
 		t.Fatal("relation get many-to-many data error[moments]")
 	}
 
-	if moments[0].User.Name == "" {
+	if moments[0].User.NickName == "" {
 		t.Fatal("relation get many-to-many data error[user]")
 	}
 
