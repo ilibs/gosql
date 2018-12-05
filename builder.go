@@ -5,12 +5,15 @@ import (
 	"log"
 	"reflect"
 	"strconv"
+	"strings"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/jmoiron/sqlx/reflectx"
 )
 
 var (
-	mapper = NewReflectMapper("db")
+	mapper        = NewReflectMapper("db")
+	foreignMapper = reflectx.NewMapper("foreign_key")
 
 	//Insert database automatically updates fields
 	AUTO_CREATE_TIME_FIELDS = []string{
@@ -102,7 +105,14 @@ func (b *Builder) initModel() {
 			log.Fatalf("model argument must slice, but get %#v", b.model)
 		}
 
-		if m, ok := reflect.Indirect(reflect.New(tp.Elem())).Interface().(IModel); ok {
+		tpEl := tp.Elem()
+
+		//Compatible with []*Struct or []Struct
+		if tpEl.Kind() == reflect.Ptr {
+			tpEl = tpEl.Elem()
+		}
+
+		if m, ok := reflect.New(tpEl).Interface().(IModel); ok {
 			b.modelEntity = m
 			b.wrapper.database = m.DbName()
 			b.table = m.TableName()
@@ -151,6 +161,82 @@ func (b *Builder) reflectModel(autoTime []string) map[string]reflect.Value {
 	return fields
 }
 
+func (b *Builder) relation(refVal reflect.Value) error {
+	t := reflect.Indirect(refVal).Type()
+	for i := 0; i < t.NumField(); i++ {
+		val := t.Field(i).Tag.Get("relation")
+		name := t.Field(i).Name
+		if val != "" && val != "-" {
+
+			relations := strings.Split(val, ",")
+
+			var foreignModel reflect.Value
+			if t.Field(i).Type.Kind() == reflect.Slice {
+				foreignModel = reflect.New(t.Field(i).Type)
+				fi := foreignModel.Interface()
+				err := Model(fi).Where(fmt.Sprintf("%s=?", relations[1]), mapper.FieldByName(refVal, relations[0]).Interface()).All()
+				if err != nil {
+					return err
+				}
+				if reflect.Indirect(foreignModel).Len() == 0 {
+					reflect.Indirect(refVal).FieldByName(name).Set(reflect.MakeSlice(t.Field(i).Type, 0, 0))
+				} else {
+					reflect.Indirect(refVal).FieldByName(name).Set(foreignModel.Elem())
+				}
+
+			} else {
+				foreignModel = reflect.New(t.Field(i).Type.Elem())
+				fi := foreignModel.Interface()
+				err := Model(fi).Where(fmt.Sprintf("%s=?", relations[1]), mapper.FieldByName(refVal, relations[0]).Interface()).Get()
+				if err != nil {
+					return err
+				}
+
+				reflect.Indirect(refVal).FieldByName(name).Set(foreignModel)
+			}
+		}
+	}
+	return nil
+}
+
+func (b *Builder) relationAll(refVal reflect.Value) error {
+	t := reflect.Indirect(refVal).Type()
+	for i := 0; i < t.NumField(); i++ {
+		val := t.Field(i).Tag.Get("relation")
+		name := t.Field(i).Name
+		if val != "" && val != "-" {
+
+			relations := strings.Split(val, ",")
+
+			var foreignModel reflect.Value
+			if t.Field(i).Type.Kind() == reflect.Slice {
+				foreignModel = reflect.New(t.Field(i).Type)
+				fi := foreignModel.Interface()
+				err := Model(fi).Where(fmt.Sprintf("%s=?", relations[1]), mapper.FieldByName(refVal, relations[0]).Interface()).All()
+				if err != nil {
+					return err
+				}
+				if reflect.Indirect(foreignModel).Len() == 0 {
+					reflect.Indirect(refVal).FieldByName(name).Set(reflect.MakeSlice(t.Field(i).Type, 0, 0))
+				} else {
+					reflect.Indirect(refVal).FieldByName(name).Set(foreignModel.Elem())
+				}
+
+			} else {
+				foreignModel = reflect.New(t.Field(i).Type.Elem())
+				fi := foreignModel.Interface()
+				err := Model(fi).Where(fmt.Sprintf("%s=?", relations[1]), mapper.FieldByName(refVal, relations[0]).Interface()).Get()
+				if err != nil {
+					return err
+				}
+
+				reflect.Indirect(refVal).FieldByName(name).Set(foreignModel)
+			}
+		}
+	}
+	return nil
+}
+
 //All get data row from to Struct
 func (b *Builder) Get(zeroValues ...string) (err error) {
 	b.initModel()
@@ -162,6 +248,12 @@ func (b *Builder) Get(zeroValues ...string) (err error) {
 
 	err = b.db().Get(b.model, b.queryString(), b.args...)
 
+	if err != nil {
+		return err
+	}
+
+	//auto relation fill
+	err = b.relation(b.modelReflectValue)
 	if err == nil {
 		hook.callMethod("AfterFind", b.modelReflectValue)
 		if hook.HasError() > 0 {
@@ -175,7 +267,76 @@ func (b *Builder) Get(zeroValues ...string) (err error) {
 //All get data rows from to Struct
 func (b *Builder) All() (err error) {
 	b.initModel()
-	return b.db().Select(b.model, b.queryString(), b.args...)
+
+	err = b.db().Select(b.model, b.queryString(), b.args...)
+	if err != nil {
+		return err
+	}
+
+	refVal := reflect.ValueOf(b.model)
+
+	l := reflect.Indirect(refVal).Len()
+	t := reflect.Indirect(refVal).Index(0).Elem().Type()
+
+	for i := 0; i < t.NumField(); i++ {
+		relVals := make([]interface{}, 0)
+		val := t.Field(i).Tag.Get("relation")
+		name := t.Field(i).Name
+		if val != "" && val != "-" {
+			relations := strings.Split(val, ",")
+			for j := 0; j < l; j++ {
+				relVals = append(relVals, mapper.FieldByName(reflect.Indirect(refVal).Index(j), relations[0]).Interface())
+			}
+
+			var foreignModel reflect.Value
+			if t.Field(i).Type.Kind() == reflect.Slice {
+				foreignModel = reflect.New(t.Field(i).Type)
+				fi := foreignModel.Interface()
+				err := Model(fi).Where(fmt.Sprintf("%s in(?)", relations[1]), relVals).All()
+				if err != nil {
+					return err
+				}
+
+				fmap := make(map[interface{}]reflect.Value)
+
+				for n := 0; n < reflect.Indirect(foreignModel).Len(); n++ {
+					fid := mapper.FieldByName(reflect.Indirect(refVal).Index(n), relations[0])
+					fmap[fid.Interface()] = reflect.New(reflect.SliceOf(t.Field(i).Type.Elem())).Elem()
+					fmap[fid.Interface()] = reflect.Append(fmap[fid.Interface()],reflect.Indirect(foreignModel).Index(n))
+				}
+
+				for j := 0; j < l; j++ {
+					pRefVal := mapper.FieldByName(reflect.Indirect(refVal).Index(j), relations[0])
+					if pVal, has := fmap[pRefVal.Interface()]; has {
+						reflect.Indirect(reflect.Indirect(refVal).Index(j)).FieldByName(name).Set(pVal)
+					} else {
+						reflect.Indirect(reflect.Indirect(refVal).Index(j)).FieldByName(name).Set(reflect.MakeSlice(t.Field(i).Type, 0, 0))
+					}
+				}
+
+			} else {
+				foreignModel = reflect.New(t.Field(i).Type.Elem())
+				fi := reflect.New(reflect.SliceOf(foreignModel.Type()))
+				err := Model(fi.Interface()).Where(fmt.Sprintf("%s in(?)", relations[1]), relVals).All()
+				if err != nil {
+					return err
+				}
+
+				fmap := make(map[interface{}]reflect.Value)
+				for n := 0; n < reflect.Indirect(fi).Len(); n++ {
+					fmap[mapper.FieldByName(reflect.Indirect(refVal).Index(n), relations[0]).Interface()] = reflect.Indirect(fi).Index(n)
+				}
+
+				for j := 0; j < l; j++ {
+					pRefVal := mapper.FieldByName(reflect.Indirect(refVal).Index(j), relations[0])
+					if pVal, has := fmap[pRefVal.Interface()]; has {
+						reflect.Indirect(reflect.Indirect(refVal).Index(j)).FieldByName(name).Set(pVal)
+					}
+				}
+			}
+		}
+	}
+	return nil
 }
 
 //Create data from to Struct
