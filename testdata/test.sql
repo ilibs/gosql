@@ -1,102 +1,144 @@
-# Dump of table cates
+# Dump of table comments
 # ------------------------------------------------------------
 
-DROP TABLE IF EXISTS `cates`;
+DROP TABLE IF EXISTS `comments`;
 
-CREATE TABLE `cates` (
-  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `name` varchar(100) NOT NULL DEFAULT '',
-  `desc` varchar(255) NOT NULL DEFAULT '',
-  `domain` varchar(100) NOT NULL DEFAULT '',
+CREATE TABLE `comments` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `moment_id` int(11) NOT NULL COMMENT '日记ID',
+  `pid` int(11) NOT NULL DEFAULT '0' COMMENT '回复评论ID',
+  `user_id` int(11) NOT NULL COMMENT '微信用户ID',
+  `content` varchar(255) NOT NULL DEFAULT '' COMMENT '评论内容',
+  `status` int(11) NOT NULL DEFAULT '1' COMMENT '1 正常 2删除',
+  `created_at` datetime NOT NULL COMMENT '创建时间',
+  `updated_at` datetime NOT NULL COMMENT '更新时间',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+
+
+# Dump of table likes
+# ------------------------------------------------------------
+
+DROP TABLE IF EXISTS `likes`;
+
+CREATE TABLE `likes` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `moment_id` int(11) NOT NULL COMMENT '日志ID',
+  `user_id` int(11) NOT NULL COMMENT '微信用户ID',
+  `created_at` datetime NOT NULL COMMENT '创建时间',
+  `updated_at` datetime NOT NULL COMMENT '更新时间',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `un_user_like` (`moment_id`,`user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+
+
+# Dump of table moments
+# ------------------------------------------------------------
+
+DROP TABLE IF EXISTS `moments`;
+
+CREATE TABLE `moments` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `user_id` int(11) NOT NULL COMMENT '成员ID',
+  `content` text NOT NULL COMMENT '日记内容',
+  `comment_total` int(11) NOT NULL DEFAULT '0' COMMENT '评论总数',
+  `like_total` int(11) NOT NULL DEFAULT '0' COMMENT '点赞数',
+  `status` int(11) NOT NULL DEFAULT '1' COMMENT '1 正常 2删除',
+  `created_at` datetime NOT NULL COMMENT '创建时间',
+  `updated_at` datetime NOT NULL COMMENT '更新时间',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+LOCK TABLES `moments` WRITE;
+/*!40000 ALTER TABLE `moments` DISABLE KEYS */;
+
+INSERT INTO `moments` (`id`, `user_id`, `content`, `comment_total`, `like_total`, `status`, `created_at`, `updated_at`)
+VALUES
+	(1,5,'sdfsdfsdfsdfsdf',0,0,1,'2018-11-28 14:04:02','2018-11-28 14:04:02'),
+	(2,5,'sdfsdfsdfsdfsdf',0,0,1,'2018-11-28 17:14:23','2018-11-28 17:14:23'),
+	(3,5,'123123123',0,0,1,'2018-11-28 17:19:38','2018-11-28 17:19:38'),
+	(4,5,'13212312313',0,0,1,'2018-11-28 17:22:25','2018-11-28 17:22:25'),
+	(5,5,'123123123123',0,0,1,'2018-11-28 17:24:21','2018-11-28 17:24:21'),
+	(6,5,'131231232345tasvdf',0,0,1,'2018-11-28 17:24:27','2018-11-28 17:24:27'),
+	(7,5,'1231231231231231',0,0,1,'2018-11-28 18:07:48','2018-11-28 18:07:48'),
+	(8,5,'1231231231231231',0,0,1,'2018-11-28 18:09:20','2018-11-28 18:09:20'),
+	(9,5,'1231231231231231',0,0,1,'2018-11-28 18:11:19','2018-11-28 18:11:19'),
+	(10,5,'1231231231231231',0,0,1,'2018-11-28 18:13:52','2018-11-28 18:13:52'),
+	(11,5,'1231231231231231',0,0,1,'2018-11-28 18:15:02','2018-11-28 18:15:02'),
+	(12,5,'1231231231231231',0,0,1,'2018-11-28 18:15:13','2018-11-28 18:15:13'),
+	(13,5,'1231231231231231',0,0,1,'2018-11-28 18:15:39','2018-11-28 18:15:39'),
+	(14,5,'开开信息想你',0,0,1,'2018-11-28 18:31:37','2018-11-28 18:31:37'),
+	(15,5,'网友们已经开始争相给宝宝取名字了',0,0,1,'2018-11-28 18:34:45','2018-11-28 18:34:45'),
+	(16,5,' B2B事业部的对外报价显示',0,0,1,'2018-11-28 18:35:24','2018-11-28 18:35:24');
+
+/*!40000 ALTER TABLE `moments` ENABLE KEYS */;
+UNLOCK TABLES;
+
+
+# Dump of table photos
+# ------------------------------------------------------------
+
+DROP TABLE IF EXISTS `photos`;
+
+CREATE TABLE `photos` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `url` varchar(255) NOT NULL DEFAULT '' COMMENT '照片路径',
+  `moment_id` int(11) NOT NULL COMMENT '日记ID',
+  `created_at` datetime NOT NULL COMMENT '创建时间',
+  `updated_at` datetime NOT NULL COMMENT '更新时间',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+LOCK TABLES `photos` WRITE;
+/*!40000 ALTER TABLE `photos` DISABLE KEYS */;
+
+INSERT INTO `photos` (`id`, `url`, `moment_id`, `created_at`, `updated_at`)
+VALUES
+	(1,'https://static.fifsky.com/kids/upload/20181128/5febe3b6e23623168cb70eac39d26412.png!blog',10,'2018-11-28 18:15:39','2018-11-28 18:15:39'),
+	(2,'https://static.fifsky.com/kids/upload/20181128/9c60f42f07d7a0e13293c91fc5740c9d.png!blog',10,'2018-11-28 18:15:39','2018-11-28 18:15:39'),
+	(3,'https://static.fifsky.com/kids/upload/20181128/458762098fb20128996c9cb21309aa9a.png!blog',14,'2018-11-28 18:31:37','2018-11-28 18:31:37'),
+	(4,'https://static.fifsky.com/kids/upload/20181128/5b90c5af1bc35375a08cbc990ed662d1.png!blog',14,'2018-11-28 18:31:37','2018-11-28 18:31:37'),
+	(5,'https://static.fifsky.com/kids/upload/20181128/db190be4184774d88abb31521123b14c.png!blog',14,'2018-11-28 18:31:37','2018-11-28 18:31:37'),
+	(6,'https://static.fifsky.com/kids/upload/20181128/e1bd15706a79edd1f92f54538622600e.png!blog',14,'2018-11-28 18:31:37','2018-11-28 18:31:37'),
+	(7,'https://static.fifsky.com/kids/upload/20181128/6bf495726054fa12ae7e6f5d0d4560a4.png!blog',14,'2018-11-28 18:31:37','2018-11-28 18:31:37'),
+	(8,'https://static.fifsky.com/kids/upload/20181128/e1bd15706a79edd1f92f54538622600e.png!blog',15,'2018-11-28 18:34:45','2018-11-28 18:34:45'),
+	(9,'https://static.fifsky.com/kids/upload/20181128/c6cc28b912f805b6ef402603e0f67852.png!blog',9,'2018-11-28 18:34:45','2018-11-28 18:34:45'),
+	(10,'https://static.fifsky.com/kids/upload/20181128/a63a0798d098272a39e76c88f39f2f29.png!blog',16,'2018-11-28 18:35:24','2018-11-28 18:35:24'),
+	(11,'https://static.fifsky.com/kids/upload/20181128/381de1930d970183ab083fe08e2677ac.png!blog',16,'2018-11-28 18:35:24','2018-11-28 18:35:24');
+
+/*!40000 ALTER TABLE `photos` ENABLE KEYS */;
+UNLOCK TABLES;
+
+
+# Dump of table users
+# ------------------------------------------------------------
+
+DROP TABLE IF EXISTS `users`;
+
+CREATE TABLE `users` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `type` int(11) NOT NULL DEFAULT '1' COMMENT '1 普通用户 2发布用户',
+  `openid` varchar(64) NOT NULL,
+  `nickname` varchar(50) NOT NULL DEFAULT '',
+  `avatar` varchar(255) NOT NULL DEFAULT '',
+  `city` varchar(50) NOT NULL DEFAULT '',
+  `country` varchar(50) NOT NULL DEFAULT '',
+  `gender` int(11) NOT NULL,
+  `province` varchar(50) NOT NULL DEFAULT '',
   `created_at` datetime NOT NULL,
   `updated_at` datetime NOT NULL,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `un_domain` (`domain`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+  UNIQUE KEY `un_openid` (`openid`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-LOCK TABLES `cates` WRITE;
-/*!40000 ALTER TABLE `cates` DISABLE KEYS */;
+LOCK TABLES `users` WRITE;
+/*!40000 ALTER TABLE `users` DISABLE KEYS */;
 
-INSERT INTO `cates` (`id`, `name`, `desc`, `domain`, `created_at`, `updated_at`)
+INSERT INTO `users` (`id`, `type`, `openid`, `nickname`, `avatar`, `city`, `country`, `gender`, `province`, `created_at`, `updated_at`)
 VALUES
-	(1,'默认分类','默认分类','default','2017-08-18 15:21:56','2017-08-18 15:21:56'),
-	(4,'技术笔记','技术笔记,PHP,REDIS,LINUX,MYSQL,GO','notes','2017-08-18 15:21:56','2017-08-18 15:21:56');
+	(5,1,'ovEry5Nu-V873UoenVcchvnsL9Ng','豆爸&玥爸','https://wx.qlogo.cn/mmopen/vi_32/ajNVdqHZLLAa1A2huibNjHbb5zWCfLDrPzNJAOHcCgflUOthH1ZeU7lVZZEelsckFU9jB2JOFVLfEgyTeWc0AjA/132','Songjiang','China',1,'Shanghai','2018-11-28 10:29:55','2018-11-28 10:29:55');
 
-/*!40000 ALTER TABLE `cates` ENABLE KEYS */;
-UNLOCK TABLES;
-
-
-# Dump of table links
-# ------------------------------------------------------------
-
-DROP TABLE IF EXISTS `links`;
-
-CREATE TABLE `links` (
-  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `name` varchar(100) NOT NULL DEFAULT '',
-  `url` varchar(200) NOT NULL DEFAULT '',
-  `desc` varchar(255) NOT NULL DEFAULT '',
-  `created_at` datetime NOT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8;
-
-LOCK TABLES `links` WRITE;
-/*!40000 ALTER TABLE `links` DISABLE KEYS */;
-
-INSERT INTO `links` (`id`, `name`, `url`, `desc`, `created_at`)
-VALUES
-	(1,'fifsky','http://fifsky.com','fifsky','2017-08-18 15:21:56');
-
-/*!40000 ALTER TABLE `links` ENABLE KEYS */;
-UNLOCK TABLES;
-
-
-# Dump of table moods
-# ------------------------------------------------------------
-
-DROP TABLE IF EXISTS `moods`;
-
-CREATE TABLE `moods` (
-  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
-  `content` varchar(255) NOT NULL DEFAULT '',
-  `user_id` int(10) unsigned NOT NULL,
-  `created_at` datetime NOT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8;
-
-LOCK TABLES `moods` WRITE;
-/*!40000 ALTER TABLE `moods` DISABLE KEYS */;
-
-INSERT INTO `moods` (`id`, `content`, `user_id`, `created_at`)
-VALUES
-	(1,'Hi,fifsky!',1,'2017-08-18 15:21:56');
-
-/*!40000 ALTER TABLE `moods` ENABLE KEYS */;
-UNLOCK TABLES;
-
-
-# Dump of table options
-# ------------------------------------------------------------
-
-DROP TABLE IF EXISTS `options`;
-
-CREATE TABLE `options` (
-  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-  `option_key` varchar(100) NOT NULL DEFAULT '',
-  `option_value` varchar(200) NOT NULL DEFAULT '',
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `option_name` (`option_key`) USING BTREE
-) ENGINE=MyISAM DEFAULT CHARSET=utf8;
-
-LOCK TABLES `options` WRITE;
-/*!40000 ALTER TABLE `options` DISABLE KEYS */;
-
-INSERT INTO `options` (`id`, `option_key`, `option_value`)
-VALUES
-	(1,'site_name','無處告別'),
-	(2,'site_desc','回首往事，珍重眼前人'),
-	(3,'site_keyword','fifsky,rita,生活,博客,豆豆'),
-	(4,'post_num','10');
-
-/*!40000 ALTER TABLE `options` ENABLE KEYS */;
+/*!40000 ALTER TABLE `users` ENABLE KEYS */;
 UNLOCK TABLES;

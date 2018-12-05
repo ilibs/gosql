@@ -1,9 +1,5 @@
 package models
 
-import (
-	"github.com/ilibs/gosql"
-)
-
 type Users struct {
 	Id        int       `form:"id" json:"id" db:"id"`
 	Type      int       `form:"type" json:"type" db:"type"`
@@ -27,24 +23,4 @@ func (u *Users) TableName() string {
 
 func (u *Users) PK() string {
 	return "id"
-}
-
-func GetUser(uid int) (*Users, error) {
-	user := &Users{}
-	err := gosql.Model(user).Where("id = ?", uid).Get()
-
-	if err != nil {
-		return nil, err
-	}
-	return user, nil
-}
-
-func UserGetList(start int, num int) ([]*Users, error) {
-	var m = make([]*Users, 0)
-	start = (start - 1) * num
-	err := gosql.Model(&m).OrderBy("id desc").Limit(num).Offset(start).All()
-	if err != nil {
-		return nil, err
-	}
-	return m, nil
 }

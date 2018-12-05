@@ -6,6 +6,7 @@ import (
 	"context"
 	"database/sql"
 	"os"
+	"reflect"
 	"strings"
 	"time"
 
@@ -126,12 +127,31 @@ func (w *Wrapper) Get(dest interface{}, query string, args ...interface{}) (err 
 		}, w.logging)
 	}(time.Now())
 
+	hook := NewHook(w)
+	refVal := reflect.ValueOf(dest)
+	hook.callMethod("BeforeFind", refVal)
+
 	query, newArgs, err := w.argsIn(query, args)
 	if err != nil {
 		return err
 	}
 
-	return w.db().Get(dest, query, newArgs...)
+	err = w.db().Get(dest, query, newArgs...)
+	if err != nil {
+		return err
+	}
+
+	// relation data fill
+	err = RelationOne(dest)
+
+	if err == nil {
+		hook.callMethod("AfterFind", refVal)
+		if hook.HasError() > 0 {
+			return hook.Error()
+		}
+	}
+
+	return nil
 }
 
 //Select wrapper sqlx.Select
@@ -151,7 +171,13 @@ func (w *Wrapper) Select(dest interface{}, query string, args ...interface{}) (e
 		return err
 	}
 
-	return w.db().Select(dest, query, newArgs...)
+	err = w.db().Select(dest, query, newArgs...)
+	if err != nil {
+		return err
+	}
+
+	// relation data fill
+	return RelationAll(dest)
 }
 
 //Txx the transaction with context

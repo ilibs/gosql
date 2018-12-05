@@ -1,6 +1,7 @@
 package gosql
 
 import (
+	"log"
 	"os"
 	"testing"
 
@@ -37,6 +38,11 @@ func TestMain(m *testing.M) {
 	}
 
 	Connect(configs)
+
+	_, err := Import("./testdata/test.sql")
+	if err != nil {
+		log.Fatal(err)
+	}
 	m.Run()
 }
 
