@@ -142,7 +142,7 @@ func (w *Wrapper) Get(dest interface{}, query string, args ...interface{}) (err 
 	}
 
 
-	if reflect.Indirect(refVal).Type().Kind() == reflect.Struct {
+	if reflect.Indirect(refVal).Kind() == reflect.Struct {
 		// relation data fill
 		err = RelationOne(dest)
 	}
