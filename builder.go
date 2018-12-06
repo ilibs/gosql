@@ -157,6 +157,12 @@ func (b *Builder) reflectModel(autoTime []string) map[string]reflect.Value {
 	return fields
 }
 
+// Relation Unrealized
+func (b *Builder) Relation(fieldName string,fn func(b *Builder)) *Builder {
+	fn(b)
+	return b
+}
+
 //All get data row from to Struct
 func (b *Builder) Get(zeroValues ...string) (err error) {
 	b.initModel()

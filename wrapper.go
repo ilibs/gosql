@@ -147,11 +147,13 @@ func (w *Wrapper) Get(dest interface{}, query string, args ...interface{}) (err 
 		err = RelationOne(dest)
 	}
 
-	if err == nil {
-		hook.callMethod("AfterFind", refVal)
-		if hook.HasError() > 0 {
-			return hook.Error()
-		}
+	if err != nil {
+		return err
+	}
+
+	hook.callMethod("AfterFind", refVal)
+	if hook.HasError() > 0 {
+		return hook.Error()
 	}
 
 	return nil
