@@ -157,9 +157,11 @@ func (b *Builder) reflectModel(autoTime []string) map[string]reflect.Value {
 	return fields
 }
 
-// Relation Unrealized
-func (b *Builder) Relation(fieldName string,fn func(b *Builder)) *Builder {
-	fn(b)
+func (b *Builder) Relation(fieldName string,fn func(b *Builder) *Builder) *Builder {
+	if b.wrapper.RelationMap == nil {
+		b.wrapper.RelationMap = make(map[string] BuilderChainFunc)
+	}
+	b.wrapper.RelationMap[fieldName] = fn
 	return b
 }
 

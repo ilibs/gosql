@@ -26,10 +26,13 @@ var (
 	defaultWrapper = Use(Default)
 )
 
+type BuilderChainFunc func(b *Builder) *Builder
+
 type Wrapper struct {
 	database string
 	tx       *sqlx.Tx
 	logging  bool
+	RelationMap map[string]BuilderChainFunc
 }
 
 func (w *Wrapper) db() ISqlx {
@@ -144,7 +147,7 @@ func (w *Wrapper) Get(dest interface{}, query string, args ...interface{}) (err 
 
 	if reflect.Indirect(refVal).Kind() == reflect.Struct {
 		// relation data fill
-		err = RelationOne(dest)
+		err = RelationOne(dest , w.RelationMap)
 	}
 
 	if err != nil {
@@ -180,9 +183,8 @@ func (w *Wrapper) Select(dest interface{}, query string, args ...interface{}) (e
 	if err != nil {
 		return err
 	}
-
 	// relation data fill
-	return RelationAll(dest)
+	return RelationAll(dest , w.RelationMap)
 }
 
 //Txx the transaction with context
@@ -275,6 +277,15 @@ func (w *Wrapper) Import(f string) ([]sql.Result, error) {
 	return results, nil
 }
 
+func (w *Wrapper) Relation (name string , fn BuilderChainFunc) *Wrapper {
+	if w.RelationMap == nil {
+		w.RelationMap = make(map[string]BuilderChainFunc)
+	}
+	w.RelationMap[name] = fn
+	return w
+}
+
+
 //Use is change database
 func Use(db string) *Wrapper {
 	return &Wrapper{database: db}
@@ -323,4 +334,11 @@ func Select(dest interface{}, query string, args ...interface{}) error {
 // Import SQL DDL from io.Reader
 func Import(f string) ([]sql.Result, error) {
 	return defaultWrapper.Import(f)
+}
+
+func Relation(name string, fn BuilderChainFunc) *Wrapper {
+	w := Use(Default)
+	w.RelationMap = make(map[string]BuilderChainFunc)
+	w.RelationMap[name] = fn
+	return w
 }
