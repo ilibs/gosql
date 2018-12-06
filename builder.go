@@ -57,6 +57,7 @@ func Model(model interface{}, tx ...*sqlx.Tx) *Builder {
 	}
 }
 
+// ShowSQL output single sql
 func (b *Builder) ShowSQL() *Builder {
 	b.wrapper.logging = true
 	return b
@@ -157,6 +158,7 @@ func (b *Builder) reflectModel(autoTime []string) map[string]reflect.Value {
 	return fields
 }
 
+// Relation association table builder handle
 func (b *Builder) Relation(fieldName string,fn func(b *Builder) *Builder) *Builder {
 	if b.wrapper.RelationMap == nil {
 		b.wrapper.RelationMap = make(map[string] BuilderChainFunc)

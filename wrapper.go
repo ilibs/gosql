@@ -277,6 +277,7 @@ func (w *Wrapper) Import(f string) ([]sql.Result, error) {
 	return results, nil
 }
 
+// Relation association table builder handle
 func (w *Wrapper) Relation (name string , fn BuilderChainFunc) *Wrapper {
 	if w.RelationMap == nil {
 		w.RelationMap = make(map[string]BuilderChainFunc)
@@ -284,7 +285,6 @@ func (w *Wrapper) Relation (name string , fn BuilderChainFunc) *Wrapper {
 	w.RelationMap[name] = fn
 	return w
 }
-
 
 //Use is change database
 func Use(db string) *Wrapper {
@@ -336,6 +336,7 @@ func Import(f string) ([]sql.Result, error) {
 	return defaultWrapper.Import(f)
 }
 
+// Relation association table builder handle
 func Relation(name string, fn BuilderChainFunc) *Wrapper {
 	w := Use(Default)
 	w.RelationMap = make(map[string]BuilderChainFunc)
