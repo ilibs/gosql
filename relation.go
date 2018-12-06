@@ -30,7 +30,7 @@ func eachField(t reflect.Type, fn func(field reflect.StructField, val string, na
 }
 
 // RelationOne is get the associated relational data for a single piece of data
-func RelationOne(data interface{}) error {
+func RelationOne(data interface{} , chains map[string] BuilderChainFunc) error {
 	refVal := reflect.Indirect(reflect.ValueOf(data))
 	t := refVal.Type()
 
@@ -39,9 +39,18 @@ func RelationOne(data interface{}) error {
 		// if field type is slice then one-to-many ,eg: []*Struct
 		if field.Type.Kind() == reflect.Slice {
 			foreignModel = reflect.New(field.Type)
+
+			m := Model(foreignModel.Interface())
+			if chainFn , ok := chains[name] ; ok {
+				if m = chainFn(m) ; m == nil {
+					refVal.FieldByName(name).Set(reflect.MakeSlice(field.Type, 0, 0))
+					return nil
+				}
+			}
+
 			// batch get field values
 			// Since the structure is slice, there is no need to new Value
-			err := Model(foreignModel.Interface()).Where(fmt.Sprintf("%s=?", relations[1]), mapper.FieldByName(refVal, relations[0]).Interface()).All()
+			err := m.Where(fmt.Sprintf("%s=?", relations[1]), mapper.FieldByName(refVal, relations[0]).Interface()).All()
 			if err != nil {
 				return err
 			}
@@ -57,7 +66,15 @@ func RelationOne(data interface{}) error {
 		} else {
 			// If field type is struct the one-to-one,eg: *Struct
 			foreignModel = reflect.New(field.Type.Elem())
-			err := Model(foreignModel.Interface()).Where(fmt.Sprintf("%s=?", relations[1]), mapper.FieldByName(refVal, relations[0]).Interface()).Get()
+
+			m := Model(foreignModel.Interface())
+			if chainFn , ok := chains[name] ; ok {
+				if m = chainFn(m) ; m == nil {
+					return nil
+				}
+			}
+
+			err := m.Where(fmt.Sprintf("%s=?", relations[1]), mapper.FieldByName(refVal, relations[0]).Interface()).Get()
 			// If one-to-one NoRows is not an error that needs to be terminated
 			if err != nil && err != sql.ErrNoRows {
 				return err
@@ -70,7 +87,7 @@ func RelationOne(data interface{}) error {
 }
 
 // RelationAll is gets the associated relational data for multiple pieces of data
-func RelationAll(data interface{}) error {
+func RelationAll(data interface{} , chains map[string] BuilderChainFunc) error {
 	refVal := reflect.Indirect(reflect.ValueOf(data))
 
 	l := refVal.Len()
@@ -100,9 +117,18 @@ func RelationAll(data interface{}) error {
 		// if field type is slice then one to many ,eg: []*Struct
 		if field.Type.Kind() == reflect.Slice {
 			foreignModel = reflect.New(field.Type)
+
+
+			m := Model(foreignModel.Interface())
+			if chainFn , ok := chains[name] ; ok {
+				if m = chainFn(m) ; m == nil {
+					return nil
+				}
+			}
+
 			// batch get field values
 			// Since the structure is slice, there is no need to new Value
-			err := Model(foreignModel.Interface()).Where(fmt.Sprintf("%s in(?)", relations[1]), relVals).All()
+			err := m.Where(fmt.Sprintf("%s in(?)", relations[1]), relVals).All()
 			if err != nil {
 				return err
 			}
@@ -132,9 +158,18 @@ func RelationAll(data interface{}) error {
 		} else {
 			// If field type is struct the one to one,eg: *Struct
 			foreignModel = reflect.New(field.Type.Elem())
+
 			// Batch get field values, but must new slice []*Struct
 			fi := reflect.New(reflect.SliceOf(foreignModel.Type()))
-			err := Model(fi.Interface()).Where(fmt.Sprintf("%s in(?)", relations[1]), relVals).All()
+			m := Model(fi.Interface())
+
+			if chainFn , ok := chains[name] ; ok {
+				if m = chainFn(m) ; m == nil {
+					return nil
+				}
+			}
+
+			err := m.Where(fmt.Sprintf("%s in(?)", relations[1]), relVals).All()
 			if err != nil {
 				return err
 			}
