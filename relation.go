@@ -84,9 +84,16 @@ func RelationAll(data interface{}) error {
 
 	return eachField(t, func(field reflect.StructField, val string, name string, relations []string) error {
 		relVals := make([]interface{}, 0)
-		// get relation field values
+		relValsMap := make(map[interface{}]interface{}, 0)
+
+		// get relation field values and unique
 		for j := 0; j < l; j++ {
-			relVals = append(relVals, mapper.FieldByName(refVal.Index(j), relations[0]).Interface())
+			v := mapper.FieldByName(refVal.Index(j), relations[0]).Interface()
+			relValsMap[v] = nil
+		}
+
+		for k, _ := range relValsMap {
+			relVals = append(relVals, k)
 		}
 
 		var foreignModel reflect.Value

@@ -291,6 +291,65 @@ err := gosql.Select(&user, "select * from users where id in(?)",[]int{1,2,3})
 ```
 
 
+## Relation
+gosql used the golang structure to express the relationships between tables,You only need to use the `relation` Tag to specify the associated field, see example
+```go
+type UserMoment struct {
+	models.Moments
+	User   *models.Users    `json:"user" db:"-" relation:"user_id,id"`         //one-to-one
+	Photos []*models.Photos `json:"photos" db:"-" relation:"id,moment_id"`     //one-to-many
+}
+```
+
+Get single result
+```go
+moment := &UserMoment{}
+err := Model(moment).Where("status = 1 and id = ?",14).Get()
+//output User and Photos and you get the result
+```
+
+SQL:
+```sql
+2018/12/06 13:27:54
+	Query: SELECT * FROM `moments` WHERE (status = 1 and id = ?);
+	Args:  []interface {}{14}
+	Time:  0.00300s
+
+2018/12/06 13:27:54
+	Query: SELECT * FROM `moment_users` WHERE (id=?);
+	Args:  []interface {}{5}
+	Time:  0.00081s
+
+2018/12/06 13:27:54
+	Query: SELECT * FROM `photos` WHERE (moment_id=?);
+	Args:  []interface {}{14}
+	Time:  0.00093s
+```
+
+Get list result, many-to-many
+```go
+var moments = make([]*UserMoment, 0)
+err := Model(&moments).Where("status = 1").Limit(10).All()
+//You get the total result  for *UserMoment slice
+```
+
+SQL:
+```sql
+2018/12/06 13:50:59
+	Query: SELECT * FROM `moments` WHERE (status = 1) LIMIT 10;
+	Time:  0.00319s
+
+2018/12/06 13:50:59
+	Query: SELECT * FROM `moment_users` WHERE (id in(?));
+	Args:  []interface {}{[]interface {}{5}}
+	Time:  0.00094s
+
+2018/12/06 13:50:59
+	Query: SELECT * FROM `photos` WHERE (moment_id in(?, ?, ?, ?, ?, ?, ?, ?, ?, ?));
+	Args:  []interface {}{[]interface {}{1, 2, 3, 4, 5, 6, 7, 8, 9, 10}}
+	Time:  0.00087s
+```
+
 ## Hooks
 Hooks are functions that are called before or after creation/querying/updating/deletion.
 
