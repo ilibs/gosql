@@ -80,7 +80,9 @@ func RelationOne(data interface{} , chains map[string] BuilderChainFunc) error {
 				return err
 			}
 
-			refVal.FieldByName(name).Set(foreignModel)
+			if err == nil {
+				refVal.FieldByName(name).Set(foreignModel)
+			}
 		}
 		return nil
 	})

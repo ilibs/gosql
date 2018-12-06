@@ -2,6 +2,7 @@ package gosql
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"strconv"
@@ -350,3 +351,28 @@ func TestTxx(t *testing.T) {
 	})
 }
 
+func TestWrapper_Relation(t *testing.T) {
+	moment := &UserMoment{}
+	err := Relation("User" , func(b *Builder) *Builder {
+		return b.Where("gender = 0")
+	}).Get(moment , "select * from moments")
+
+	b , _ :=json.MarshalIndent(moment,"","	")
+	fmt.Println(string(b), err)
+
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+
+func TestWrapper_Relation2(t *testing.T) {
+	var moments = make([]*UserMoment, 0)
+	err := Relation("User"  , func(b *Builder) *Builder {
+		return b.Where("gender = 1")
+	}).Select(&moments , "select * from moments")
+
+	if err != nil {
+		t.Fatal(err)
+	}
+}

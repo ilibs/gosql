@@ -547,3 +547,31 @@ func TestBuilder_NullString(t *testing.T) {
 		}
 	})
 }
+
+func TestBuilder_Relation1(t *testing.T) {
+	moment := &UserMoment{}
+	err := Model(moment).Relation("User" , func(b *Builder) *Builder {
+		return b.Where("gender = 1")
+	}).Where("status = 1 and id = ?",14).Get()
+
+	b , _ :=json.MarshalIndent(moment,"","	")
+	fmt.Println(string(b), err)
+
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestBuilder_Relation2(t *testing.T) {
+	var moments = make([]*UserMoment, 0)
+	err := Model(&moments).Relation("User"  , func(b *Builder) *Builder {
+		return b.Where("gender = 0")
+	}).Where("status = 1").Limit(10).All()
+
+	b , _ :=json.MarshalIndent(moments,"","	")
+	fmt.Println(string(b), err)
+
+	if err != nil {
+		t.Fatal(err)
+	}
+}
