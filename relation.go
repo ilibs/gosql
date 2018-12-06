@@ -139,9 +139,12 @@ func RelationAll(data interface{} , chains map[string] BuilderChainFunc) error {
 			// For example, if there are multiple images under an article
 			// we use the article ID to associate the images, map[1][]*Images
 			for n := 0; n < reflect.Indirect(foreignModel).Len(); n++ {
-				fid := mapper.FieldByName(refVal.Index(n), relations[0])
-				fmap[fid.Interface()] = reflect.New(reflect.SliceOf(field.Type.Elem())).Elem()
-				fmap[fid.Interface()] = reflect.Append(fmap[fid.Interface()], reflect.Indirect(foreignModel).Index(n))
+				val := reflect.Indirect(foreignModel).Index(n)
+				fid := mapper.FieldByName(val, relations[1])
+				if _,has := fmap[fid.Interface()]; !has {
+					fmap[fid.Interface()] = reflect.New(reflect.SliceOf(field.Type.Elem())).Elem()
+				}
+				fmap[fid.Interface()] = reflect.Append(fmap[fid.Interface()], val)
 			}
 
 			// Set the result to the model

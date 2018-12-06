@@ -72,6 +72,10 @@ func TestRelationAll1(t *testing.T) {
 		t.Fatal(err)
 	}
 
+
+	b , _ :=json.MarshalIndent(moments,"","	")
+	fmt.Println(string(b),err)
+
 	if len(moments) == 0 {
 		t.Fatal("relation get many-to-many data error[moments]")
 	}
@@ -84,8 +88,6 @@ func TestRelationAll1(t *testing.T) {
 		t.Fatal("relation get many-to-many data error[photos]")
 	}
 
-	b , _ :=json.MarshalIndent(moments,"","	")
-	fmt.Println(string(b),err)
 }
 
 func TestRelationAll2(t *testing.T) {
