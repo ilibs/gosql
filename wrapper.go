@@ -26,7 +26,7 @@ var (
 	defaultWrapper = Use(Default)
 )
 
-type BuilderChainFunc func(b *Builder) *Builder
+type BuilderChainFunc func(b *Builder)
 
 type Wrapper struct {
 	database string

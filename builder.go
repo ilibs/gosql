@@ -159,7 +159,7 @@ func (b *Builder) reflectModel(autoTime []string) map[string]reflect.Value {
 }
 
 // Relation association table builder handle
-func (b *Builder) Relation(fieldName string,fn func(b *Builder) *Builder) *Builder {
+func (b *Builder) Relation(fieldName string,fn BuilderChainFunc) *Builder {
 	if b.wrapper.RelationMap == nil {
 		b.wrapper.RelationMap = make(map[string] BuilderChainFunc)
 	}

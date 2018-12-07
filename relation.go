@@ -42,10 +42,7 @@ func RelationOne(data interface{} , chains map[string] BuilderChainFunc) error {
 
 			m := Model(foreignModel.Interface())
 			if chainFn , ok := chains[name] ; ok {
-				if m = chainFn(m) ; m == nil {
-					refVal.FieldByName(name).Set(reflect.MakeSlice(field.Type, 0, 0))
-					return nil
-				}
+				chainFn(m)
 			}
 
 			// batch get field values
@@ -69,9 +66,7 @@ func RelationOne(data interface{} , chains map[string] BuilderChainFunc) error {
 
 			m := Model(foreignModel.Interface())
 			if chainFn , ok := chains[name] ; ok {
-				if m = chainFn(m) ; m == nil {
-					return nil
-				}
+				chainFn(m)
 			}
 
 			err := m.Where(fmt.Sprintf("%s=?", relations[1]), mapper.FieldByName(refVal, relations[0]).Interface()).Get()
@@ -123,9 +118,7 @@ func RelationAll(data interface{} , chains map[string] BuilderChainFunc) error {
 
 			m := Model(foreignModel.Interface())
 			if chainFn , ok := chains[name] ; ok {
-				if m = chainFn(m) ; m == nil {
-					return nil
-				}
+				chainFn(m)
 			}
 
 			// batch get field values
@@ -169,9 +162,7 @@ func RelationAll(data interface{} , chains map[string] BuilderChainFunc) error {
 			m := Model(fi.Interface())
 
 			if chainFn , ok := chains[name] ; ok {
-				if m = chainFn(m) ; m == nil {
-					return nil
-				}
+				chainFn(m)
 			}
 
 			err := m.Where(fmt.Sprintf("%s in(?)", relations[1]), relVals).All()
