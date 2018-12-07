@@ -8,14 +8,34 @@ import (
 	"github.com/ilibs/gosql/example/models"
 )
 
+
 type UserMoment struct {
+	models.Users
+	Moments   []*models.Moments    `json:"moments" db:"-" relation:"id,user_id"`
+}
+
+func TestRelationOne2(t *testing.T) {
+	moment := &UserMoment{}
+	err := Model(moment).Relation("Moments", func(b *Builder) {
+		b.Limit(2)
+	}).Where("id = ?",5).Get()
+
+	b , _ :=json.MarshalIndent(moment,"","	")
+	fmt.Println(string(b), err)
+
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
+type MomentList struct {
 	models.Moments
 	User   *models.Users    `json:"user" db:"-" relation:"user_id,id"`
 	Photos []*models.Photos `json:"photos" db:"-" relation:"id,moment_id"`
 }
 
 func TestRelationOne(t *testing.T) {
-	moment := &UserMoment{}
+	moment := &MomentList{}
 	err := Model(moment).Where("status = 1 and id = ?",14).Get()
 
 	b , _ :=json.MarshalIndent(moment,"","	")
@@ -35,7 +55,7 @@ func TestRelationOne(t *testing.T) {
 }
 
 func TestRelationAll(t *testing.T) {
-	var moments = make([]*UserMoment, 0)
+	var moments = make([]*MomentList, 0)
 	err := Model(&moments).Where("status = 1").Limit(10).All()
 	if err != nil {
 		t.Fatal(err)

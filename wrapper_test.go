@@ -352,7 +352,7 @@ func TestTxx(t *testing.T) {
 }
 
 func TestWrapper_Relation(t *testing.T) {
-	moment := &UserMoment{}
+	moment := &MomentList{}
 	err := Relation("User" , func(b *Builder) {
 		b.Where("gender = 0")
 	}).Get(moment , "select * from moments")
@@ -367,7 +367,7 @@ func TestWrapper_Relation(t *testing.T) {
 
 
 func TestWrapper_Relation2(t *testing.T) {
-	var moments = make([]*UserMoment, 0)
+	var moments = make([]*MomentList, 0)
 	err := Relation("User"  , func(b *Builder) {
 		b.Where("gender = 1")
 	}).Select(&moments , "select * from moments")

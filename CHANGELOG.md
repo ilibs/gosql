@@ -1,4 +1,9 @@
-## [v2.0.0 (2018-12-06)](https://github.com/ilibs/gosql/compare/v1.0.10...v2.0.0)
+## [v1.1.1 (2018-12-07)](https://github.com/ilibs/gosql/compare/v1.1.0...v1.1.1)
+
+### Added
+- Added Relation where
+
+## [v1.1.0 (2018-12-06)](https://github.com/ilibs/gosql/compare/v1.0.10...v1.1.0)
 
 ### Added
 - Added Relation
