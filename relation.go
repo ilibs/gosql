@@ -173,7 +173,9 @@ func RelationAll(data interface{} , chains map[string] BuilderChainFunc) error {
 			// Combine relation data as a one-to-one relation
 			fmap := make(map[interface{}]reflect.Value)
 			for n := 0; n < reflect.Indirect(fi).Len(); n++ {
-				fmap[mapper.FieldByName(refVal.Index(n), relations[0]).Interface()] = reflect.Indirect(fi).Index(n)
+				val := reflect.Indirect(fi).Index(n)
+				fid := mapper.FieldByName(val, relations[1])
+				fmap[fid.Interface()] = val
 			}
 
 			// Set the result to the model
