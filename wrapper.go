@@ -183,6 +183,7 @@ func (w *Wrapper) Select(dest interface{}, query string, args ...interface{}) (e
 	if err != nil {
 		return err
 	}
+
 	// relation data fill
 	return RelationAll(dest , w.RelationMap)
 }

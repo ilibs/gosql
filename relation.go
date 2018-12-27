@@ -94,7 +94,7 @@ func RelationAll(data interface{} , chains map[string] BuilderChainFunc) error {
 	}
 
 	// get the struct field in slice
-	t := refVal.Index(0).Elem().Type()
+	t := reflect.Indirect(refVal.Index(0)).Type()
 
 	return eachField(t, func(field reflect.StructField, val string, name string, relations []string) error {
 		relVals := make([]interface{}, 0)
