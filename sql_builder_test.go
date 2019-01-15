@@ -16,7 +16,7 @@ func TestSQLBuilder_queryString(t *testing.T) {
 
 	b.Where("id = ?", 1)
 
-	if b.queryString() != "SELECT  * FROM users WHERE (id = ?) ORDER BY id desc LIMIT 0 OFFSET 10;" {
+	if b.queryString() != "SELECT  * FROM `users` WHERE (id = ?) ORDER BY id desc LIMIT 0 OFFSET 10;" {
 		t.Error("sql builder query error", b.queryString())
 	}
 	fmt.Println(b.queryString())
@@ -36,7 +36,7 @@ func TestSQLBuilder_insertString(t *testing.T) {
 		"updated_at": "2018-07-11 11:58:21",
 	})
 
-	if query != "INSERT INTO users (`created_at`,`email`,`id`,`name`,`updated_at`) VALUES(?,?,?,?,?);" {
+	if query != "INSERT INTO `users` (`created_at`,`email`,`id`,`name`,`updated_at`) VALUES(?,?,?,?,?);" {
 		t.Error("sql builder insert error", query)
 	}
 }
@@ -53,7 +53,7 @@ func TestSQLBuilder_updateString(t *testing.T) {
 		"email": "test@test.com",
 	})
 
-	if query != "UPDATE users SET `email`=?,`name`=? WHERE (id = ?);" {
+	if query != "UPDATE `users` SET `email`=?,`name`=? WHERE (id = ?);" {
 		t.Error("sql builder update error", query)
 	}
 
@@ -70,7 +70,7 @@ func TestSQLBuilder_deleteString(t *testing.T) {
 
 	query := b.deleteString()
 
-	if query != "DELETE FROM users WHERE (id = ?);" {
+	if query != "DELETE FROM `users` WHERE (id = ?);" {
 		t.Error("sql builder delete error", query)
 	}
 }
@@ -84,7 +84,7 @@ func TestSQLBuilder_countString(t *testing.T) {
 
 	query := b.countString()
 
-	if query != "SELECT  count(*) FROM users WHERE (id = ?);" {
+	if query != "SELECT  count(*) FROM `users` WHERE (id = ?);" {
 		t.Error("sql builder count error", query)
 	}
 }

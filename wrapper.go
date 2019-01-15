@@ -144,7 +144,6 @@ func (w *Wrapper) Get(dest interface{}, query string, args ...interface{}) (err 
 		return err
 	}
 
-
 	if reflect.Indirect(refVal).Kind() == reflect.Struct {
 		// relation data fill
 		err = RelationOne(dest , w.RelationMap)
@@ -160,6 +159,13 @@ func (w *Wrapper) Get(dest interface{}, query string, args ...interface{}) (err 
 	}
 
 	return nil
+}
+
+func indirectType(v reflect.Type) reflect.Type {
+	if v.Kind() != reflect.Ptr {
+		return v
+	}
+	return v.Elem()
 }
 
 //Select wrapper sqlx.Select
@@ -184,8 +190,19 @@ func (w *Wrapper) Select(dest interface{}, query string, args ...interface{}) (e
 		return err
 	}
 
-	// relation data fill
-	return RelationAll(dest , w.RelationMap)
+	t := indirectType(reflect.TypeOf(dest))
+	if t.Kind() == reflect.Slice {
+		if indirectType(t.Elem()).Kind() == reflect.Struct {
+			// relation data fill
+			err = RelationAll(dest , w.RelationMap)
+		}
+	}
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 //Txx the transaction with context

@@ -227,6 +227,22 @@ func TestBuilder_All(t *testing.T) {
 	})
 }
 
+func TestBuilder_Select(t *testing.T) {
+	RunWithSchema(t, func(t *testing.T) {
+		insert(1)
+		insert(2)
+
+		user := make([]*Users, 0)
+		err := Model(&user).Select("id,name,email").All()
+
+		if err != nil {
+			t.Error(err)
+		}
+
+		fmt.Println(jsonEncode(user))
+	})
+}
+
 func TestBuilder_InAll(t *testing.T) {
 	RunWithSchema(t, func(t *testing.T) {
 		insert(1)
@@ -236,7 +252,7 @@ func TestBuilder_InAll(t *testing.T) {
 		insert(5)
 
 		user := make([]*Users, 0)
-		err := Model(&user).Where("status = ? and id in(?)",1,[]int{1,3,4}).All()
+		err := Model(&user).Where("status = ? and id in(?)", 1, []int{1, 3, 4}).All()
 
 		if err != nil {
 			t.Error(err)
@@ -550,11 +566,11 @@ func TestBuilder_NullString(t *testing.T) {
 
 func TestBuilder_Relation1(t *testing.T) {
 	moment := &MomentList{}
-	err := Model(moment).Relation("User" , func(b *Builder) {
+	err := Model(moment).Relation("User", func(b *Builder) {
 		b.Where("gender = 1")
-	}).Where("status = 1 and id = ?",14).Get()
+	}).Where("status = 1 and id = ?", 14).Get()
 
-	b , _ :=json.MarshalIndent(moment,"","	")
+	b, _ := json.MarshalIndent(moment, "", "	")
 	fmt.Println(string(b), err)
 
 	if err != nil {
@@ -564,11 +580,11 @@ func TestBuilder_Relation1(t *testing.T) {
 
 func TestBuilder_Relation2(t *testing.T) {
 	var moments = make([]*MomentList, 0)
-	err := Model(&moments).Relation("User"  , func(b *Builder) {
+	err := Model(&moments).Relation("User", func(b *Builder) {
 		b.Where("gender = 0")
 	}).Where("status = 1").Limit(10).All()
 
-	b , _ :=json.MarshalIndent(moments,"","	")
+	b, _ := json.MarshalIndent(moments, "", "	")
 	fmt.Println(string(b), err)
 
 	if err != nil {

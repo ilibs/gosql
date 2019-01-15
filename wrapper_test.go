@@ -163,6 +163,39 @@ func TestGet(t *testing.T) {
 	})
 }
 
+func TestGetSingle(t *testing.T) {
+	RunWithSchema(t, func(t *testing.T) {
+		insert(1)
+		db := Use("default")
+		{
+			var name string
+			err := db.Get(&name, "select name from users where id = ?", 1)
+
+			if err != nil {
+				t.Error(err)
+			}
+
+			fmt.Println(name)
+		}
+	})
+}
+
+func TestSelectSlice(t *testing.T) {
+	RunWithSchema(t, func(t *testing.T) {
+		insert(1)
+		insert(2)
+		var users []string
+		err := Select(&users, "select name from users")
+
+		if err != nil {
+			t.Error(err)
+		}
+
+		fmt.Println(jsonEncode(users))
+	})
+}
+
+
 func TestSelect(t *testing.T) {
 	RunWithSchema(t, func(t *testing.T) {
 		insert(1)

@@ -6,6 +6,7 @@ import (
 )
 
 type SQLBuilder struct {
+	fields string
 	table  string
 	where  string
 	order  string
@@ -39,7 +40,11 @@ func (s *SQLBuilder) orderFormat() string {
 
 //queryString Assemble the query statement
 func (s *SQLBuilder) queryString() string {
-	query := fmt.Sprintf("SELECT %s * FROM `%s` %s %s %s %s", s.hint, s.table, s.where, s.orderFormat(), s.limitFormat(), s.offsetFormat())
+	if s.fields == "" {
+		s.fields = "*"
+	}
+
+	query := fmt.Sprintf("SELECT %s %s FROM `%s` %s %s %s %s", s.hint,s.fields, s.table, s.where, s.orderFormat(), s.limitFormat(), s.offsetFormat())
 	query = strings.TrimRight(query, " ")
 	query = query + ";"
 

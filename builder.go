@@ -132,6 +132,11 @@ func (b *Builder) Where(str string, args ...interface{}) *Builder {
 	return b
 }
 
+func (b *Builder) Select(fields string) *Builder {
+	b.fields = fields
+	return b
+}
+
 //Limit
 func (b *Builder) Limit(i int) *Builder {
 	b.limit = strconv.Itoa(i)
