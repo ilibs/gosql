@@ -60,6 +60,12 @@ func (m *Mapper) Count() (num int64, err error) {
 	return num, err
 }
 
+// WithTx Table use tx
+func (m *Mapper) WithTx(tx *sqlx.Tx) *Mapper {
+	m.wrapper.tx = tx
+	return m
+}
+
 // Table select table name
 func Table(t string, tx ...*sqlx.Tx) *Mapper {
 	var txx *sqlx.Tx

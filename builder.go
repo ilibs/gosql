@@ -120,6 +120,12 @@ func (b *Builder) initModel() {
 	}
 }
 
+//WithTx model use tx
+func (b *Builder) WithTx(tx *sqlx.Tx) *Builder {
+	b.wrapper.tx = tx
+	return b
+}
+
 //Hint is set TDDL "/*+TDDL:slave()*/"
 func (b *Builder) Hint(hint string) *Builder {
 	b.hint = hint

@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"context"
 	"database/sql"
+	"log"
 	"os"
 	"reflect"
 	"strings"
@@ -29,9 +30,9 @@ var (
 type BuilderChainFunc func(b *Builder)
 
 type Wrapper struct {
-	database string
-	tx       *sqlx.Tx
-	logging  bool
+	database    string
+	tx          *sqlx.Tx
+	logging     bool
 	RelationMap map[string]BuilderChainFunc
 }
 
@@ -146,7 +147,7 @@ func (w *Wrapper) Get(dest interface{}, query string, args ...interface{}) (err 
 
 	if reflect.Indirect(refVal).Kind() == reflect.Struct {
 		// relation data fill
-		err = RelationOne(dest , w.RelationMap)
+		err = RelationOne(dest, w.RelationMap)
 	}
 
 	if err != nil {
@@ -194,7 +195,7 @@ func (w *Wrapper) Select(dest interface{}, query string, args ...interface{}) (e
 	if t.Kind() == reflect.Slice {
 		if indirectType(t.Elem()).Kind() == reflect.Struct {
 			// relation data fill
-			err = RelationAll(dest , w.RelationMap)
+			err = RelationAll(dest, w.RelationMap)
 		}
 	}
 
@@ -215,7 +216,10 @@ func (w *Wrapper) Txx(ctx context.Context, fn func(ctx context.Context, tx *sqlx
 	}
 	defer func() {
 		if err != nil {
-			tx.Rollback()
+			err := tx.Rollback()
+			if err != nil {
+				log.Printf("gosql rollback error:%s", err)
+			}
 		}
 	}()
 
@@ -236,7 +240,10 @@ func (w *Wrapper) Tx(fn func(tx *sqlx.Tx) error) (err error) {
 	}
 	defer func() {
 		if err != nil {
-			tx.Rollback()
+			err := tx.Rollback()
+			if err != nil {
+				log.Printf("gosql rollback error:%s", err)
+			}
 		}
 	}()
 
@@ -296,7 +303,7 @@ func (w *Wrapper) Import(f string) ([]sql.Result, error) {
 }
 
 // Relation association table builder handle
-func (w *Wrapper) Relation (name string , fn BuilderChainFunc) *Wrapper {
+func (w *Wrapper) Relation(name string, fn BuilderChainFunc) *Wrapper {
 	if w.RelationMap == nil {
 		w.RelationMap = make(map[string]BuilderChainFunc)
 	}
