@@ -244,7 +244,7 @@ user := &Users{
     }
 }
 
-err := Model(user).Get()
+err := gosql.Model(user).Get()
 ```
 
 Builder SQL:
@@ -261,7 +261,7 @@ If `sql.NullString` of `Valid` attribute is false, SQL builder will ignore this 
 ## gosql.Expr
 Reference GORM Expr, Resolve update field self-update problem
 ```go
-Table("users").Update(map[string]interface{}{
+gosql.Table("users").Update(map[string]interface{}{
     "id":2,
     "count":gosql.Expr("count+?",1)
 })
@@ -304,7 +304,7 @@ type MomentList struct {
 Get single result
 ```go
 moment := &MomentList{}
-err := Model(moment).Where("status = 1 and id = ?",14).Get()
+err := gosql.Model(moment).Where("status = 1 and id = ?",14).Get()
 //output User and Photos and you get the result
 ```
 
@@ -329,7 +329,7 @@ SQL:
 Get list result, many-to-many
 ```go
 var moments = make([]*MomentList, 0)
-err := Model(&moments).Where("status = 1").Limit(10).All()
+err := gosql.Model(&moments).Where("status = 1").Limit(10).All()
 //You get the total result  for *UserMoment slice
 ```
 
