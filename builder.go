@@ -10,7 +10,7 @@ import (
 )
 
 var (
-	mapper        = NewReflectMapper("db")
+	mapper = NewReflectMapper("db")
 	//Insert database automatically updates fields
 	AUTO_CREATE_TIME_FIELDS = []string{
 		"create_time",
@@ -132,6 +132,12 @@ func (b *Builder) Hint(hint string) *Builder {
 	return b
 }
 
+//ForceIndex
+func (b *Builder) ForceIndex(i string) *Builder {
+	b.forceIndex = i
+	return b
+}
+
 //Where for example Where("id = ? and name = ?",1,"test")
 func (b *Builder) Where(str string, args ...interface{}) *Builder {
 	b.SQLBuilder.Where(str, args...)
@@ -170,9 +176,9 @@ func (b *Builder) reflectModel(autoTime []string) map[string]reflect.Value {
 }
 
 // Relation association table builder handle
-func (b *Builder) Relation(fieldName string,fn BuilderChainFunc) *Builder {
+func (b *Builder) Relation(fieldName string, fn BuilderChainFunc) *Builder {
 	if b.wrapper.RelationMap == nil {
-		b.wrapper.RelationMap = make(map[string] BuilderChainFunc)
+		b.wrapper.RelationMap = make(map[string]BuilderChainFunc)
 	}
 	b.wrapper.RelationMap[fieldName] = fn
 	return b

@@ -6,13 +6,14 @@ import (
 )
 
 type SQLBuilder struct {
-	fields string
-	table  string
-	where  string
-	order  string
-	limit  string
-	offset string
-	hint   string
+	fields     string
+	table      string
+	forceIndex string
+	where      string
+	order      string
+	limit      string
+	offset     string
+	hint       string
 	// Extra args to be substituted in the *where* clause
 	args []interface{}
 }
@@ -44,7 +45,12 @@ func (s *SQLBuilder) queryString() string {
 		s.fields = "*"
 	}
 
-	query := fmt.Sprintf("SELECT %s %s FROM `%s` %s %s %s %s", s.hint,s.fields, s.table, s.where, s.orderFormat(), s.limitFormat(), s.offsetFormat())
+	table := "`" + s.table + "`"
+	if s.forceIndex != "" {
+		table += fmt.Sprintf(" force index(%s)", s.forceIndex)
+	}
+
+	query := fmt.Sprintf("SELECT %s %s FROM %s %s %s %s %s", s.hint, s.fields, table, s.where, s.orderFormat(), s.limitFormat(), s.offsetFormat())
 	query = strings.TrimRight(query, " ")
 	query = query + ";"
 

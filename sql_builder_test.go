@@ -22,6 +22,24 @@ func TestSQLBuilder_queryString(t *testing.T) {
 	fmt.Println(b.queryString())
 }
 
+func TestSQLBuilder_queryForceIndexString(t *testing.T) {
+
+	b := &SQLBuilder{
+		table:      "users",
+		order:      "id desc",
+		forceIndex: "idx_user",
+		limit:      "0",
+		offset:     "10",
+	}
+
+	b.Where("id = ?", 1)
+
+	if b.queryString() != "SELECT  * FROM `users` WHERE (id = ?) ORDER BY id desc LIMIT 0 OFFSET 10;" {
+		t.Error("sql builder query error", b.queryString())
+	}
+	fmt.Println(b.queryString())
+}
+
 func TestSQLBuilder_insertString(t *testing.T) {
 
 	b := &SQLBuilder{
