@@ -16,7 +16,7 @@ func TestSQLBuilder_queryString(t *testing.T) {
 
 	b.Where("id = ?", 1)
 
-	if b.queryString() != "SELECT  * FROM `users` WHERE (id = ?) ORDER BY id desc LIMIT 0 OFFSET 10;" {
+	if b.queryString() != "SELECT * FROM `users` WHERE (id = ?) ORDER BY id desc LIMIT 0 OFFSET 10;" {
 		t.Error("sql builder query error", b.queryString())
 	}
 	fmt.Println(b.queryString())
@@ -34,7 +34,7 @@ func TestSQLBuilder_queryForceIndexString(t *testing.T) {
 
 	b.Where("id = ?", 1)
 
-	if b.queryString() != "SELECT  * FROM `users` force index(idx_user) WHERE (id = ?) ORDER BY id desc LIMIT 0 OFFSET 10;" {
+	if b.queryString() != "SELECT * FROM `users` force index(idx_user) WHERE (id = ?) ORDER BY id desc LIMIT 0 OFFSET 10;" {
 		t.Error("sql builder query error", b.queryString())
 	}
 	fmt.Println(b.queryString())
@@ -102,7 +102,7 @@ func TestSQLBuilder_countString(t *testing.T) {
 
 	query := b.countString()
 
-	if query != "SELECT  count(*) FROM `users` WHERE (id = ?);" {
+	if query != "SELECT count(*) FROM `users` WHERE (id = ?);" {
 		t.Error("sql builder count error", query)
 	}
 }

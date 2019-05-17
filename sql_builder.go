@@ -50,7 +50,7 @@ func (s *SQLBuilder) queryString() string {
 		table += fmt.Sprintf(" force index(%s)", s.forceIndex)
 	}
 
-	query := fmt.Sprintf("SELECT %s %s FROM %s %s %s %s %s", s.hint, s.fields, table, s.where, s.orderFormat(), s.limitFormat(), s.offsetFormat())
+	query := fmt.Sprintf("%sSELECT %s FROM %s %s %s %s %s", s.hint, s.fields, table, s.where, s.orderFormat(), s.limitFormat(), s.offsetFormat())
 	query = strings.TrimRight(query, " ")
 	query = query + ";"
 
@@ -59,7 +59,7 @@ func (s *SQLBuilder) queryString() string {
 
 //countString Assemble the count statement
 func (s *SQLBuilder) countString() string {
-	query := fmt.Sprintf("SELECT %s count(*) FROM `%s` %s", s.hint, s.table, s.where)
+	query := fmt.Sprintf("%sSELECT count(*) FROM `%s` %s", s.hint, s.table, s.where)
 	query = strings.TrimRight(query, " ")
 	query = query + ";"
 
