@@ -24,7 +24,7 @@ type ISqlx interface {
 }
 
 var (
-	defaultWrapper = Use(Default)
+	defaultWrapper = Use(defaultLink)
 )
 
 type BuilderChainFunc func(b *Builder)
@@ -45,7 +45,7 @@ func (w *Wrapper) db() ISqlx {
 }
 
 func ShowSql() *Wrapper {
-	w := Use(Default)
+	w := Use(defaultLink)
 	w.logging = true
 	return w
 }
@@ -363,8 +363,14 @@ func Import(f string) ([]sql.Result, error) {
 
 // Relation association table builder handle
 func Relation(name string, fn BuilderChainFunc) *Wrapper {
-	w := Use(Default)
+	w := Use(defaultLink)
 	w.RelationMap = make(map[string]BuilderChainFunc)
 	w.RelationMap[name] = fn
 	return w
+}
+
+// SetDefaultLink set default link name
+func SetDefaultLink(db string) {
+	defaultLink = db
+	defaultWrapper = Use(defaultLink)
 }

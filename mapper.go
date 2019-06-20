@@ -74,5 +74,5 @@ func Table(t string, tx ...*sqlx.Tx) *Mapper {
 		txx = tx[0]
 	}
 
-	return &Mapper{wrapper: &Wrapper{database: Default, tx: txx}, SQLBuilder: SQLBuilder{table: t}}
+	return &Mapper{wrapper: &Wrapper{database: defaultLink, tx: txx}, SQLBuilder: SQLBuilder{table: t}}
 }

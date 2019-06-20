@@ -9,8 +9,9 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-//Default set database default tag name
-var Default = "default"
+//defaultLink set database default link name
+var defaultLink = "default"
+
 //If database fatal exit
 var FatalExit = true
 var dbService = make(map[string]*sqlx.DB, 0)
@@ -18,7 +19,7 @@ var dbService = make(map[string]*sqlx.DB, 0)
 // DB gets the specified database engine,
 // or the default DB if no name is specified.
 func DB(name ...string) *sqlx.DB {
-	dbName := Default
+	dbName := defaultLink
 	if name != nil {
 		dbName = name[0]
 	}

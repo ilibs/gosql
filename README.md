@@ -66,6 +66,15 @@ db := gosql.Use("test")
 db.Queryx("select * from tests")
 ```
 
+You can also set the default database connection name
+
+```go
+gosql.SetDefaultLink("log")
+gosql.Connect(configs)
+```
+
+> `gosql.Get` etc., will use the configuration with the connection name `log` 
+
 ## Using struct
 
 ```go
