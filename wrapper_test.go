@@ -67,6 +67,7 @@ func TestQueryx(t *testing.T) {
 		if err != nil {
 			t.Error(err)
 		}
+		defer rows.Close()
 
 		for rows.Next() {
 			user := &Users{}
@@ -81,6 +82,7 @@ func TestQueryx(t *testing.T) {
 		if err != nil {
 			t.Error(err)
 		}
+		defer rows.Close()
 
 		for rows.Next() {
 			//results := make(map[string]interface{})
@@ -195,7 +197,6 @@ func TestSelectSlice(t *testing.T) {
 	})
 }
 
-
 func TestSelect(t *testing.T) {
 	RunWithSchema(t, func(t *testing.T) {
 		insert(1)
@@ -212,7 +213,6 @@ func TestSelect(t *testing.T) {
 	})
 }
 
-
 func TestQueryxIn(t *testing.T) {
 	RunWithSchema(t, func(t *testing.T) {
 		insert(1)
@@ -221,11 +221,12 @@ func TestQueryxIn(t *testing.T) {
 		insert(5)
 		insert(6)
 
-		rows, err := Queryx("select * from users where id in (?)",[]int{1,2,3})
+		rows, err := Queryx("select * from users where id in (?)", []int{1, 2, 3})
 
 		if err != nil {
 			t.Error(err)
 		}
+		defer rows.Close()
 
 		for rows.Next() {
 			user := &Users{}
@@ -246,7 +247,7 @@ func TestSelectIn(t *testing.T) {
 		insert(6)
 		db := Use("default")
 		user := make([]*Users, 0)
-		err := db.Select(&user, "select * from users where id in(?)",[]int{1,2,3})
+		err := db.Select(&user, "select * from users where id in(?)", []int{1, 2, 3})
 
 		if err != nil {
 			t.Error(err)
@@ -255,7 +256,6 @@ func TestSelectIn(t *testing.T) {
 		fmt.Println(jsonEncode(user))
 	})
 }
-
 
 func TestTx(t *testing.T) {
 	RunWithSchema(t, func(t *testing.T) {
@@ -386,11 +386,11 @@ func TestTxx(t *testing.T) {
 
 func TestWrapper_Relation(t *testing.T) {
 	moment := &MomentList{}
-	err := Relation("User" , func(b *Builder) {
+	err := Relation("User", func(b *Builder) {
 		b.Where("gender = 0")
-	}).Get(moment , "select * from moments")
+	}).Get(moment, "select * from moments")
 
-	b , _ :=json.MarshalIndent(moment,"","	")
+	b, _ := json.MarshalIndent(moment, "", "	")
 	fmt.Println(string(b), err)
 
 	if err != nil {
@@ -398,12 +398,11 @@ func TestWrapper_Relation(t *testing.T) {
 	}
 }
 
-
 func TestWrapper_Relation2(t *testing.T) {
 	var moments = make([]*MomentList, 0)
-	err := Relation("User"  , func(b *Builder) {
+	err := Relation("User", func(b *Builder) {
 		b.Where("gender = 1")
-	}).Select(&moments , "select * from moments")
+	}).Select(&moments, "select * from moments")
 
 	if err != nil {
 		t.Fatal(err)
