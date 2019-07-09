@@ -210,10 +210,10 @@ func (w *Wrapper) Select(dest interface{}, query string, args ...interface{}) (e
 func (w *Wrapper) Txx(ctx context.Context, fn func(ctx context.Context, tx *sqlx.Tx) error) (err error) {
 	db := DB(w.database)
 	tx, err := db.BeginTxx(ctx, nil)
-	tx = tx.Unsafe()
 	if err != nil {
 		return err
 	}
+	tx = tx.Unsafe()
 	defer func() {
 		if err != nil {
 			err := tx.Rollback()
@@ -234,10 +234,10 @@ func (w *Wrapper) Txx(ctx context.Context, fn func(ctx context.Context, tx *sqlx
 func (w *Wrapper) Tx(fn func(tx *sqlx.Tx) error) (err error) {
 	db := DB(w.database)
 	tx, err := db.Beginx()
-	tx = tx.Unsafe()
 	if err != nil {
 		return err
 	}
+	tx = tx.Unsafe()
 	defer func() {
 		if err != nil {
 			err := tx.Rollback()
