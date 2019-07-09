@@ -48,6 +48,7 @@ for rows.Next() {
     user := &Users{}
     err = rows.StructScan(user)
 }
+rows.Close()
 
 //QueryRowx
 user := &Users{}
