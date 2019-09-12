@@ -21,6 +21,12 @@ jobs:
         uses: actions/setup-go@v1
         with:
           go-version: ${{ matrix.go-version }}
+
+      - name: Init Database
+        run: |
+          mysql -e 'CREATE DATABASE IF NOT EXISTS db1;'
+          mysql -e 'CREATE DATABASE IF NOT EXISTS db2;'
+
       - name: Test
         env:
           MYSQL_TEST_DSN1: "root:@/db1?parseTime=true"
