@@ -13,6 +13,8 @@ jobs:
           - 3306
         volumes:
           - $HOME/mysql:/var/lib/mysql
+        env:
+          MYSQL_ROOT_PASSWORD: 123456
     steps:
       - name: Checkout
         uses: actions/checkout@master
@@ -24,11 +26,11 @@ jobs:
 
       - name: Init Database
         run: |
-          mysql -uroot -e 'CREATE DATABASE IF NOT EXISTS db1;'
-          mysql -uroot -e 'CREATE DATABASE IF NOT EXISTS db2;'
+          mysql -uroot -P123456 -e 'CREATE DATABASE IF NOT EXISTS db1;'
+          mysql -uroot -P123456 -e 'CREATE DATABASE IF NOT EXISTS db2;'
 
       - name: Test
         env:
-          MYSQL_TEST_DSN1: "root:@/db1?parseTime=true"
-          MYSQL_TEST_DSN2: "root:@/db2?parseTime=true"
+          MYSQL_TEST_DSN1: "root:123456@/db1?parseTime=true"
+          MYSQL_TEST_DSN2: "root:123456@/db2?parseTime=true"
         run: go test ./...
