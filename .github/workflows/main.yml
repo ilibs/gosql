@@ -24,8 +24,8 @@ jobs:
 
       - name: Init Database
         run: |
-          mysql -e -u root 'CREATE DATABASE IF NOT EXISTS db1;'
-          mysql -e -u root 'CREATE DATABASE IF NOT EXISTS db2;'
+          mysql -uroot -e 'CREATE DATABASE IF NOT EXISTS db1;'
+          mysql -uroot -e 'CREATE DATABASE IF NOT EXISTS db2;'
 
       - name: Test
         env:
