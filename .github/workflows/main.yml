@@ -13,6 +13,8 @@ jobs:
           - "13306:3306"
         volumes:
           - $HOME/mysql:/var/lib/mysql
+        env:
+          MYSQL_ROOT_PASSWORD: 123456
 
     steps:
       - name: Checkout
@@ -25,11 +27,11 @@ jobs:
 
       - name: Init Database
         run: |
-          mysql -uroot -h127.0.0.1 -p13306 -e 'CREATE DATABASE IF NOT EXISTS db1;'
-          mysql -uroot -h127.0.0.1 -p13306 -e 'CREATE DATABASE IF NOT EXISTS db2;'
+          mysql -uroot -h127.0.0.1 -e 'CREATE DATABASE IF NOT EXISTS db1;'
+          mysql -uroot -h127.0.0.1 -e 'CREATE DATABASE IF NOT EXISTS db2;'
 
       - name: Test
         env:
-          MYSQL_TEST_DSN1: "root:@tcp(127.0.0.1:13306)/db1?parseTime=true"
-          MYSQL_TEST_DSN2: "root:@tcp(127.0.0.1:13306)/db2?parseTime=true"
+          MYSQL_TEST_DSN1: "root:@tcp(127.0.0.1:3306)/db1?parseTime=true"
+          MYSQL_TEST_DSN2: "root:@tcp(127.0.0.1:3306)/db2?parseTime=true"
         run: go test ./...
