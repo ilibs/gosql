@@ -6,15 +6,15 @@ jobs:
 #      matrix:
 #        go-version: [1.10.8, 1.11, 1.12, 1.13]
     runs-on: ubuntu-latest
-    services:
-      mysql:
-        image: mysql:5.7.27
-        ports:
-          - "3306:3306"
-        volumes:
-          - $HOME/mysql:/var/lib/mysql
-        env:
-          MYSQL_ROOT_PASSWORD: 123456
+#    services:
+#      mysql:
+#        image: mysql:5.7.27
+#        ports:
+#          - 3306
+#        volumes:
+#          - $HOME/mysql:/var/lib/mysql
+#        env:
+#          MYSQL_ROOT_PASSWORD: 123456
     steps:
       - name: Checkout
         uses: actions/checkout@master
@@ -26,8 +26,8 @@ jobs:
 
       - name: Init Database
         run: |
-          mysql -uroot -h 127.0.0.1 -P123456 -e 'CREATE DATABASE IF NOT EXISTS db1;'
-          mysql -uroot -h 127.0.0.1 -P123456 -e 'CREATE DATABASE IF NOT EXISTS db2;'
+          mysql -uroot -h127.0.0.1 -e 'CREATE DATABASE IF NOT EXISTS db1;'
+          mysql -uroot -h127.0.0.1 -e 'CREATE DATABASE IF NOT EXISTS db2;'
 
       - name: Test
         env:
