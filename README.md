@@ -8,6 +8,14 @@ The package based on [sqlx](https://github.com/jmoiron/sqlx), It's simple and ke
 <a href="https://godoc.org/github.com/ilibs/gosql"><img src="https://godoc.org/github.com/ilibs/gosql?status.svg" alt="GoDoc"></a>
 <a href="https://opensource.org/licenses/mit-license.php" rel="nofollow"><img src="https://badges.frapsoft.com/os/mit/mit.svg?v=103"></a>
 
+⚠️ Because of some disruptive changes, The current major version is upgraded to V2，If you continue with V1, you can check out the v1 branches [https://github.com/ilibs/gosql/tree/v1](https://github.com/ilibs/gosql/tree/v1)
+
+## V2 ChangeLog
+- Remove the second argument to the Model() and Table() functions and replace it with WithTx(tx)
+- Remove Model interface DbName() function,use the Use() function 
+- Uniform API design specification, see [APIDESIGN](APIDESIGN.md)
+- Relation add `connection:"db2"` struct tag, Solve the cross-library connection problem caused by deleting DbName()
+
 ## Usage
 
 Connection database and use sqlx original function,See the https://github.com/jmoiron/sqlx
@@ -15,7 +23,7 @@ Connection database and use sqlx original function,See the https://github.com/jm
 ```go
 import (
     _ "github.com/go-sql-driver/mysql" //mysql driver
-    "github.com/ilibs/gosql"
+    "github.com/ilibs/gosql/v2"
 )
 
 func main(){
@@ -88,10 +96,6 @@ type Users struct {
 	UpdatedAt time.Time `db:"updated_at"`
 }
 
-func (u *Users) DbName() string {
-	return "default"
-}
-
 func (u *Users) TableName() string {
 	return "users"
 }
@@ -158,8 +162,9 @@ gosql.Tx(func(tx *sqlx.Tx) error {
             Name:  "test" + strconv.Itoa(id),
             Email: "test" + strconv.Itoa(id) + "@test.com",
         }
-
-        gosql.Model(user, tx).Create()
+		
+		//v2
+        gosql.WithTx(tx).Model(user).Create()
 
         if id == 8 {
             return errors.New("interrupt the transaction")
@@ -202,6 +207,7 @@ AUTO_UPDATE_TIME_FIELDS = []string{
 
 ## Using Map
 `Create` `Update` `Delete` `Count` support `map[string]interface`,For example:
+
 ```go
 //Create
 gosql.Table("users").Create(map[string]interface{}{
@@ -227,8 +233,8 @@ gosql.Table("users").Where("id = ?", 1).Count()
 //Change database
 gosql.Use("db2").Table("users").Where("id = ?", 1).Count()
 
-//Transaction `tx` is *sqlx.Tx
-gosql.Table("users",tx).Where("id = ?", 1}).Count()
+//Transaction `tx` is *sqlx.Tx for v2
+gosql.WithTx(tx).Table("users").Where("id = ?", 1}).Count()
 ```
 
 
@@ -299,19 +305,22 @@ rows, err := gosql.Queryx("SELECT * FROM users WHERE level IN (?);", levels)
 user := make([]*Users, 0)
 err := gosql.Select(&user, "select * from users where id in(?)",[]int{1,2,3})
 ```
-
+⚠️ Since version v2, the relation query across library connections needs to be specified using `connection` tag
 
 ## Relation
 gosql used the golang structure to express the relationships between tables,You only need to use the `relation` Tag to specify the associated field, see example
+
+
 ```go
 type MomentList struct {
 	models.Moments
 	User   *models.Users    `json:"user" db:"-" relation:"user_id,id"`         //one-to-one
-	Photos []*models.Photos `json:"photos" db:"-" relation:"id,moment_id"`     //one-to-many
+	Photos []*models.Photos `json:"photos" db:"-" relation:"id,moment_id" connection:"db2"`     //one-to-many
 }
 ```
 
 Get single result
+
 ```go
 moment := &MomentList{}
 err := gosql.Model(moment).Where("status = 1 and id = ?",14).Get()
@@ -319,6 +328,7 @@ err := gosql.Model(moment).Where("status = 1 and id = ?",14).Get()
 ```
 
 SQL:
+
 ```sql
 2018/12/06 13:27:54
 	Query: SELECT * FROM `moments` WHERE (status = 1 and id = ?);
@@ -337,6 +347,7 @@ SQL:
 ```
 
 Get list result, many-to-many
+
 ```go
 var moments = make([]*MomentList, 0)
 err := gosql.Model(&moments).Where("status = 1").Limit(10).All()
@@ -344,6 +355,7 @@ err := gosql.Model(&moments).Where("status = 1").Limit(10).All()
 ```
 
 SQL:
+
 ```sql
 2018/12/06 13:50:59
 	Query: SELECT * FROM `moments` WHERE (status = 1) LIMIT 10;
@@ -362,6 +374,7 @@ SQL:
 
 
 Relation Where:
+
 ```go
 moment := &MomentList{}
 err := gosql.Relation("User" , func(b *Builder) {

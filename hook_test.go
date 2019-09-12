@@ -1,36 +1,16 @@
 package gosql
 
 import (
-	"database/sql"
 	"errors"
 	"fmt"
 	"strings"
 	"testing"
-	"time"
 
-	"github.com/jmoiron/sqlx"
+	"github.com/ilibs/gosql/v2/internal/example/models"
 )
 
 type hookUser struct {
-	Id          int            `db:"id"`
-	Name        string         `db:"name"`
-	Email       string         `db:"email"`
-	Status      int            `db:"status"`
-	SuccessTime sql.NullString `db:"success_time" json:"success_time"`
-	CreatedAt   time.Time      `db:"created_at" json:"created_at"`
-	UpdatedAt   time.Time      `db:"updated_at" json:"updated_at"`
-}
-
-func (u *hookUser) DbName() string {
-	return "default"
-}
-
-func (u *hookUser) TableName() string {
-	return "users"
-}
-
-func (u *hookUser) PK() string {
-	return "id"
+	models.Users
 }
 
 func (u *hookUser) BeforeCreate() error {
@@ -50,12 +30,13 @@ func (u *hookUser) BeforeUpdate() {
 	fmt.Println("BeforeUpdate run")
 }
 
-func (u *hookUser) AfterUpdate(tx *sqlx.Tx) error {
+func (u *hookUser) AfterUpdate() error {
 	fmt.Println("AfterUpdate run")
-	user := &Users{
+	user := &models.Users{
 		Id: 999,
 	}
-	err := Model(user, tx).Get()
+
+	err := Model(user).Get()
 	return err
 }
 
@@ -75,12 +56,11 @@ func (u *hookUser) AfterFind() {
 func TestNewHook(t *testing.T) {
 	RunWithSchema(t, func(t *testing.T) {
 		{
-			user := &hookUser{
+			user := &hookUser{models.Users{
 				Id:     1,
 				Name:   "test",
 				Status: 1,
-				Email:  "test@test.com",
-			}
+			}}
 			_, err := Model(user).Create()
 			if err == nil {
 				t.Error("before create must error")
@@ -89,8 +69,9 @@ func TestNewHook(t *testing.T) {
 
 		{
 			insert(2)
-			user := &hookUser{
+			user := &hookUser{models.Users{
 				Id: 2,
+			},
 			}
 			_, err := Model(user).Update()
 			if err == nil {
@@ -99,11 +80,11 @@ func TestNewHook(t *testing.T) {
 		}
 
 		{
-			user := &hookUser{
+			user := &hookUser{models.Users{
 				Id:     3,
 				Name:   "test",
 				Status: 1,
-				Email:  "test@test.com",
+			},
 			}
 			_, err := Model(user).Create()
 			if err != nil {

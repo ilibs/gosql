@@ -31,7 +31,6 @@ var (
 //Model interface
 type IModel interface {
 	TableName() string
-	DbName() string
 	PK() string
 }
 
@@ -44,16 +43,10 @@ type Builder struct {
 }
 
 // Model construct SQL from Struct
-func Model(model interface{}, tx ...*sqlx.Tx) *Builder {
-	var txx *sqlx.Tx
-
-	if tx != nil {
-		txx = tx[0]
-	}
-
+func Model(model interface{}) *Builder {
 	return &Builder{
 		model:   model,
-		wrapper: &Wrapper{tx: txx},
+		wrapper: &Wrapper{database: defaultLink},
 	}
 }
 
@@ -70,7 +63,6 @@ func (b *Builder) db() ISqlx {
 func (b *Builder) initModel() {
 	if m, ok := b.model.(IModel); ok {
 		b.modelEntity = m
-		b.wrapper.database = m.DbName()
 		b.table = m.TableName()
 		b.modelReflectValue = reflect.ValueOf(m)
 	} else {
@@ -111,7 +103,6 @@ func (b *Builder) initModel() {
 
 		if m, ok := reflect.New(tpEl).Interface().(IModel); ok {
 			b.modelEntity = m
-			b.wrapper.database = m.DbName()
 			b.table = m.TableName()
 			b.modelReflectValue = reflect.ValueOf(m)
 		} else {

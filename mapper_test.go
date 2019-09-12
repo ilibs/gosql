@@ -9,7 +9,7 @@ func mapInsert(t *testing.T, id int64) int64 {
 	id, err := Table("users").Create(map[string]interface{}{
 		"id":         id,
 		"name":       "test" + strconv.Itoa(int(id)),
-		"email":      "test@test.com",
+		"status":     1,
 		"created_at": "2018-07-11 11:58:21",
 		"updated_at": "2018-07-11 11:58:21",
 	})
@@ -36,8 +36,7 @@ func TestMapper_Update(t *testing.T) {
 		id := mapInsert(t, 1)
 
 		affected, err := Table("users").Where("id = ?", id).Update(map[string]interface{}{
-			"name":  "fifsky",
-			"email": "fifsky@test.com",
+			"name": "fifsky",
 		})
 
 		if err != nil {

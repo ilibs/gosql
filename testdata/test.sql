@@ -1,39 +1,3 @@
-# Dump of table comments
-# ------------------------------------------------------------
-
-DROP TABLE IF EXISTS `comments`;
-
-CREATE TABLE `comments` (
-  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-  `moment_id` int(11) NOT NULL COMMENT '日记ID',
-  `pid` int(11) NOT NULL DEFAULT '0' COMMENT '回复评论ID',
-  `user_id` int(11) NOT NULL COMMENT '微信用户ID',
-  `content` varchar(255) NOT NULL DEFAULT '' COMMENT '评论内容',
-  `status` int(11) NOT NULL DEFAULT '1' COMMENT '1 正常 2删除',
-  `created_at` datetime NOT NULL COMMENT '创建时间',
-  `updated_at` datetime NOT NULL COMMENT '更新时间',
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
-
-
-# Dump of table likes
-# ------------------------------------------------------------
-
-DROP TABLE IF EXISTS `likes`;
-
-CREATE TABLE `likes` (
-  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-  `moment_id` int(11) NOT NULL COMMENT '日志ID',
-  `user_id` int(11) NOT NULL COMMENT '微信用户ID',
-  `created_at` datetime NOT NULL COMMENT '创建时间',
-  `updated_at` datetime NOT NULL COMMENT '更新时间',
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `un_user_like` (`moment_id`,`user_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
-
-
 # Dump of table moments
 # ------------------------------------------------------------
 
@@ -96,9 +60,9 @@ LOCK TABLES `photos` WRITE;
 
 INSERT INTO `photos` (`id`, `url`, `moment_id`, `created_at`, `updated_at`)
 VALUES
-	(1,'https://static.fifsky.com/kids/upload/20181128/5febe3b6e23623168cb70eac39d26412.png!blog',10,'2018-11-28 18:15:39','2018-11-28 18:15:39'),
+	(1,'https://static.fifsky.com/kids/upload/20181128/5febe3b6e23623168cb70eac39d26412.png!blog',1,'2018-11-28 18:15:39','2018-11-28 18:15:39'),
 	(2,'https://static.fifsky.com/kids/upload/20181128/9c60f42f07d7a0e13293c91fc5740c9d.png!blog',10,'2018-11-28 18:15:39','2018-11-28 18:15:39'),
-	(3,'https://static.fifsky.com/kids/upload/20181128/458762098fb20128996c9cb21309aa9a.png!blog',14,'2018-11-28 18:31:37','2018-11-28 18:31:37'),
+	(3,'https://static.fifsky.com/kids/upload/20181128/458762098fb20128996c9cb21309aa9a.png!blog',1,'2018-11-28 18:31:37','2018-11-28 18:31:37'),
 	(4,'https://static.fifsky.com/kids/upload/20181128/5b90c5af1bc35375a08cbc990ed662d1.png!blog',14,'2018-11-28 18:31:37','2018-11-28 18:31:37'),
 	(5,'https://static.fifsky.com/kids/upload/20181128/db190be4184774d88abb31521123b14c.png!blog',14,'2018-11-28 18:31:37','2018-11-28 18:31:37'),
 	(6,'https://static.fifsky.com/kids/upload/20181128/e1bd15706a79edd1f92f54538622600e.png!blog',14,'2018-11-28 18:31:37','2018-11-28 18:31:37'),
@@ -117,29 +81,23 @@ UNLOCK TABLES;
 
 DROP TABLE IF EXISTS `moment_users`;
 
-CREATE TABLE `moment_users` (
+CREATE TABLE `users` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-  `type` int(11) NOT NULL DEFAULT '1' COMMENT '1 普通用户 2发布用户',
-  `openid` varchar(64) NOT NULL,
-  `nickname` varchar(50) NOT NULL DEFAULT '',
-  `avatar` varchar(255) NOT NULL DEFAULT '',
-  `city` varchar(50) NOT NULL DEFAULT '',
-  `country` varchar(50) NOT NULL DEFAULT '',
-  `gender` int(11) NOT NULL,
-  `province` varchar(50) NOT NULL DEFAULT '',
+  `name` varchar(50) NOT NULL DEFAULT '',
+  `status` int(11) NOT NULL,
+  `success_time` datetime,
   `created_at` datetime NOT NULL,
   `updated_at` datetime NOT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `un_openid` (`openid`)
+  PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-LOCK TABLES `moment_users` WRITE;
+LOCK TABLES `users` WRITE;
 /*!40000 ALTER TABLE `moment_users` DISABLE KEYS */;
 
-INSERT INTO `moment_users` (`id`, `type`, `openid`, `nickname`, `avatar`, `city`, `country`, `gender`, `province`, `created_at`, `updated_at`)
+INSERT INTO `users` (`id`,`name`, `status`, `created_at`, `updated_at`)
 VALUES
-	(5,1,'ovEry5Nu-V873UoenVcchvnsL9Ng','豆爸&玥爸','https://wx.qlogo.cn/mmopen/vi_32/ajNVdqHZLLAa1A2huibNjHbb5zWCfLDrPzNJAOHcCgflUOthH1ZeU7lVZZEelsckFU9jB2JOFVLfEgyTeWc0AjA/132','Songjiang','China',1,'Shanghai','2018-11-28 10:29:55','2018-11-28 10:29:55'),
-	(6,1,'ovEcy5Nu-V873UoenVcchvnsL9Ng','呵呵','https://wx.qlogo.cn/mmopen/vi_32/ajNVdqHZLLAa1A2huibNjHbb5zWCfLDrPzNJAOHcCgflUOthH1ZeU7lVZZEelsckFU9jB2JOFVLfEgyTeWc0AjA/132','Songjiang','China',1,'Shanghai','2018-11-28 10:29:55','2018-11-28 10:29:55');
+	(5,'豆爸&玥爸',1,'2018-11-28 10:29:55','2018-11-28 10:29:55'),
+	(6,'呵呵',1,'2018-11-28 10:29:55','2018-11-28 10:29:55');
 
 /*!40000 ALTER TABLE `moment_users` ENABLE KEYS */;
 UNLOCK TABLES;

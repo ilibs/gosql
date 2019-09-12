@@ -5,74 +5,84 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/ilibs/gosql/example/models"
+	"github.com/ilibs/gosql/v2/internal/example/models"
 )
-
 
 type UserMoment struct {
 	models.Users
-	Moments   []*models.Moments    `json:"moments" db:"-" relation:"id,user_id"`
+	Moments []*models.Moments `json:"moments" db:"-" relation:"id,user_id"`
 }
 
 func TestRelationOne2(t *testing.T) {
-	moment := &UserMoment{}
-	err := Model(moment).Relation("Moments", func(b *Builder) {
-		b.Limit(2)
-	}).Where("id = ?",5).Get()
+	RunWithSchema(t, func(t *testing.T) {
+		initDatas(t)
+		moment := &UserMoment{}
+		err := Model(moment).Relation("Moments", func(b *Builder) {
+			b.Limit(2)
+		}).Where("id = ?", 5).Get()
 
-	b , _ :=json.MarshalIndent(moment,"","	")
-	fmt.Println(string(b), err)
+		b, _ := json.MarshalIndent(moment, "", "	")
+		fmt.Println(string(b), err)
 
-	if err != nil {
-		t.Fatal(err)
-	}
+		if err != nil {
+			t.Fatal(err)
+		}
+	})
 }
 
 type MomentList struct {
 	models.Moments
 	User   *models.Users    `json:"user" db:"-" relation:"user_id,id"`
-	Photos []*models.Photos `json:"photos" db:"-" relation:"id,moment_id"`
+	Photos []*models.Photos `json:"photos" db:"-" relation:"id,moment_id" connection:"db2"`
 }
 
 func TestRelationOne(t *testing.T) {
-	moment := &MomentList{}
-	err := Model(moment).Where("status = 1 and id = ?",14).Get()
+	RunWithSchema(t, func(t *testing.T) {
+		initDatas(t)
 
-	b , _ :=json.MarshalIndent(moment,"","	")
-	fmt.Println(string(b), err)
+		moment := &MomentList{}
+		err := Model(moment).Where("status = 1 and id = ?", 14).Get()
 
-	if err != nil {
-		t.Fatal(err)
-	}
+		b, _ := json.MarshalIndent(moment, "", "	")
+		fmt.Println(string(b), err)
 
-	if moment.User.NickName == "" {
-		t.Fatal("relation one-to-one data error[user]")
-	}
+		if err != nil {
+			t.Fatal(err)
+		}
 
-	if len(moment.Photos) == 0 {
-		t.Fatal("relation get one-to-many data error[photos]")
-	}
+		if moment.User.Name == "" {
+			t.Fatal("relation one-to-one data error[user]")
+		}
+
+		if len(moment.Photos) == 0 {
+			t.Fatal("relation get one-to-many data error[photos]")
+		}
+	})
 }
 
 func TestRelationAll(t *testing.T) {
-	var moments = make([]*MomentList, 0)
-	err := Model(&moments).Where("status = 1").Limit(10).All()
-	if err != nil {
-		t.Fatal(err)
-	}
+	RunWithSchema(t, func(t *testing.T) {
+		initDatas(t)
 
-	b , _ :=json.MarshalIndent(moments,"","	")
-	fmt.Println(string(b),err)
+		var moments = make([]*MomentList, 0)
+		err := Model(&moments).Where("status = 1").Limit(10).All()
+		if err != nil {
+			t.Fatal(err)
+		}
 
-	if len(moments) == 0 {
-		t.Fatal("relation get many-to-many data error[moments]")
-	}
+		b, _ := json.MarshalIndent(moments, "", "	")
+		fmt.Println(string(b), err)
 
-	if moments[0].User.NickName == "" {
-		t.Fatal("relation get many-to-many data error[user]")
-	}
+		if len(moments) == 0 {
+			t.Fatal("relation get many-to-many data error[moments]")
+		}
 
-	if len(moments[0].Photos) == 0 {
-		t.Fatal("relation get many-to-many data error[photos]")
-	}
+		if moments[0].User.Name == "" {
+			t.Fatal("relation get many-to-many data error[user]")
+		}
+
+		if len(moments[0].Photos) == 0 {
+			t.Fatal("relation get many-to-many data error[photos]")
+		}
+	})
 }

@@ -254,10 +254,20 @@ func (w *Wrapper) Tx(fn func(tx *sqlx.Tx) error) (err error) {
 	return
 }
 
-//Table database handler from to table name
-//for example gosql.Use("db2").Table("users")
+// Table database handler from to table name
+// for example:
+// gosql.Use("db2").Table("users")
+// gosql.WithTx(tx).Table("users").Get()
 func (w *Wrapper) Table(t string) *Mapper {
 	return &Mapper{wrapper: w, SQLBuilder: SQLBuilder{table: t}}
+}
+
+//Model database handler from to struct
+//for example:
+// gosql.Use("db2").Model(&users{})
+// gosql.WithTx(tx).Model(&users{}).Get()
+func (w *Wrapper) Model(m interface{}) *Builder {
+	return &Builder{model: m, wrapper: w}
 }
 
 //Import SQL DDL from sql file

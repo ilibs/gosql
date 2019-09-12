@@ -6,6 +6,8 @@ import (
 	"reflect"
 	"testing"
 	"time"
+
+	"github.com/ilibs/gosql/v2/internal/example/models"
 )
 
 type MyString string
@@ -155,7 +157,7 @@ func TestUtil_inSlice(t *testing.T) {
 }
 
 func TestUtil_zeroValueFilter(t *testing.T) {
-	user := &Users{
+	user := &models.Users{
 		Id:   1,
 		Name: "test",
 	}
@@ -165,8 +167,8 @@ func TestUtil_zeroValueFilter(t *testing.T) {
 
 	m := zeroValueFilter(fields, nil)
 
-	if _, ok := m["email"]; ok {
-		t.Error("email zero value not filter")
+	if _, ok := m["status"]; ok {
+		t.Error("status value not filter")
 	}
 
 	if _, ok := m["creatd_at"]; ok {
@@ -177,14 +179,14 @@ func TestUtil_zeroValueFilter(t *testing.T) {
 		t.Error("updated_at zero value not filter")
 	}
 
-	m2 := zeroValueFilter(fields, []string{"email"})
-	if _, ok := m2["email"]; !ok {
-		t.Error("email shouldn't be filtered")
+	m2 := zeroValueFilter(fields, []string{"status"})
+	if _, ok := m2["status"]; !ok {
+		t.Error("status shouldn't be filtered")
 	}
 }
 
 func TestUtil_structAutoTime(t *testing.T) {
-	user := &Users{
+	user := &models.Users{
 		Id:   1,
 		Name: "test",
 	}
@@ -202,19 +204,17 @@ func TestUtil_sortedParamKeys(t *testing.T) {
 	m := map[string]interface{}{
 		"id":         1,
 		"name":       "test",
-		"email":      "test@test.com",
 		"created_at": "2018-07-11 11:58:21",
 		"updated_at": "2018-07-11 11:58:21",
 	}
 
-	keySort := []string{"created_at", "email", "id", "name", "updated_at"}
+	keySort := []string{"created_at", "id", "name", "updated_at"}
 
 	s := sortedParamKeys(m)
 
 	for i, k := range s {
 		if k != keySort[i] {
 			t.Error("sort error", k)
-
 		}
 	}
 }
