@@ -1,0 +1,30 @@
+name: gosql
+on:[push, pull_request]
+  branches:
+    - master
+jobs:
+  test:
+    strategy:
+      matrix:
+        go-version: [1.10, 1.11, 1.12, 1.13]
+    runs-on: ${{ matrix.platform }}
+    services:
+      mysql:
+        image: mysql:5.7.27
+        ports:
+          - 3306
+        volumes:
+          - $HOME/mysql:/var/lib/mysql
+    steps:
+      - name: Checkout
+        uses: actions/checkout@master
+
+      - name: Set up Go 1.12
+        uses: actions/setup-go@v1
+        with:
+          go-version: ${{ matrix.go-version }}
+      - name: Test
+        env:
+          MYSQL_TEST_DSN1: "root:@/db1?parseTime=true"
+          MYSQL_TEST_DSN2: "root:@/db2?parseTime=true"
+        run: go test ./...
