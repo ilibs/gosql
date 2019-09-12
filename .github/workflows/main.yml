@@ -26,11 +26,11 @@ jobs:
 
       - name: Init Database
         run: |
-          mysql -uroot -h127.0.0.1 -e 'CREATE DATABASE IF NOT EXISTS db1;'
-          mysql -uroot -h127.0.0.1 -e 'CREATE DATABASE IF NOT EXISTS db2;'
+          mysql -urunner -h127.0.0.1 -e 'CREATE DATABASE IF NOT EXISTS db1;'
+          mysql -urunner -h127.0.0.1 -e 'CREATE DATABASE IF NOT EXISTS db2;'
 
       - name: Test
         env:
-          MYSQL_TEST_DSN1: "root:123456@tcp(127.0.0.1:3306)/db1?parseTime=true"
-          MYSQL_TEST_DSN2: "root:123456@tcp(127.0.0.1:3306)/db2?parseTime=true"
+          MYSQL_TEST_DSN1: "runner:@tcp(127.0.0.1:3306)/db1?parseTime=true"
+          MYSQL_TEST_DSN2: "runner:@tcp(127.0.0.1:3306)/db2?parseTime=true"
         run: go test ./...
