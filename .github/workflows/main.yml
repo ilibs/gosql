@@ -1,9 +1,15 @@
 name: gosql
-on: [push, pull_request]
-  paths:
-    - '*'
-    - '!/.github/workflows/*'
-    - '!*.md'
+on:
+  push:
+    paths:
+      - '*'
+      - '!/.github/workflows/*'
+      - '!*.md'
+  pull_request:
+    paths:
+      - '*'
+      - '!/.github/workflows/*'
+      - '!*.md'
 jobs:
   test:
     strategy:
