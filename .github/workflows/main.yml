@@ -3,12 +3,10 @@ on:
   push:
     paths:
       - '*'
-      - '!/.github/workflows/*'
       - '!*.md'
   pull_request:
     paths:
       - '*'
-      - '!/.github/workflows/*'
       - '!*.md'
 jobs:
   test:
