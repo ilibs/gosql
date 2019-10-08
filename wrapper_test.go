@@ -222,7 +222,7 @@ func TestQueryxIn(t *testing.T) {
 		insert(5)
 		insert(6)
 
-		rows, err := Queryx("select * from users where id in (?)", []int{1, 2, 3})
+		rows, err := Queryx("select * from users where status = ? and  id in (?)", 0, []int{1, 2, 3})
 
 		if err != nil {
 			t.Error(err)

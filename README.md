@@ -306,10 +306,11 @@ rows, err := gosql.Queryx("SELECT * FROM users WHERE level IN (?);", levels)
 user := make([]*Users, 0)
 err := gosql.Select(&user, "select * from users where id in(?)",[]int{1,2,3})
 ```
-⚠️ Since version v2, the relation query across library connections needs to be specified using `connection` tag
 
 ## Relation
 gosql used the golang structure to express the relationships between tables,You only need to use the `relation` Tag to specify the associated field, see example
+
+⚠️ Since version v2, the relation query across library connections needs to be specified using `connection` tag
 
 
 ```go
