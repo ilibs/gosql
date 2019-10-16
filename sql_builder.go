@@ -6,6 +6,7 @@ import (
 )
 
 type SQLBuilder struct {
+	dialect    Dialect
 	fields     string
 	table      string
 	forceIndex string
@@ -45,7 +46,7 @@ func (s *SQLBuilder) queryString() string {
 		s.fields = "*"
 	}
 
-	table := "`" + s.table + "`"
+	table := s.dialect.Quote(s.table)
 	if s.forceIndex != "" {
 		table += fmt.Sprintf(" force index(%s)", s.forceIndex)
 	}
@@ -59,7 +60,7 @@ func (s *SQLBuilder) queryString() string {
 
 //countString Assemble the count statement
 func (s *SQLBuilder) countString() string {
-	query := fmt.Sprintf("%sSELECT count(*) FROM `%s` %s", s.hint, s.table, s.where)
+	query := fmt.Sprintf("%sSELECT count(*) FROM %s %s", s.hint, s.dialect.Quote(s.table), s.where)
 	query = strings.TrimRight(query, " ")
 	query = query + ";"
 
@@ -70,12 +71,12 @@ func (s *SQLBuilder) countString() string {
 func (s *SQLBuilder) insertString(params map[string]interface{}) string {
 	var cols, vals []string
 	for _, k := range sortedParamKeys(params) {
-		cols = append(cols, fmt.Sprintf("`%s`", k))
+		cols = append(cols, s.dialect.Quote(k))
 		vals = append(vals, "?")
 		s.args = append(s.args, params[k])
 	}
 
-	return fmt.Sprintf("INSERT INTO `%s` (%s) VALUES(%s);", s.table, strings.Join(cols, ","), strings.Join(vals, ","))
+	return fmt.Sprintf("INSERT INTO %s (%s) VALUES(%s);", s.dialect.Quote(s.table), strings.Join(cols, ","), strings.Join(vals, ","))
 }
 
 //updateString Assemble the update statement
@@ -85,17 +86,17 @@ func (s *SQLBuilder) updateString(params map[string]interface{}) string {
 
 	for _, k := range sortedParamKeys(params) {
 		if e, ok := params[k].(*expr); ok {
-			updateFields = append(updateFields, fmt.Sprintf("%s=%s", fmt.Sprintf("`%s`", k), e.expr))
+			updateFields = append(updateFields, fmt.Sprintf("%s=%s", s.dialect.Quote(k), e.expr))
 			args = append(args, e.args...)
 		} else {
-			updateFields = append(updateFields, fmt.Sprintf("%s=?", fmt.Sprintf("`%s`", k)))
+			updateFields = append(updateFields, fmt.Sprintf("%s=?", s.dialect.Quote(k)))
 			args = append(args, params[k])
 		}
 	}
 	args = append(args, s.args...)
 	s.args = args
 
-	query := fmt.Sprintf("UPDATE `%s` SET %s %s", s.table, strings.Join(updateFields, ","), s.where)
+	query := fmt.Sprintf("UPDATE %s SET %s %s", s.dialect.Quote(s.table), strings.Join(updateFields, ","), s.where)
 	query = strings.TrimRight(query, " ")
 	query = query + ";"
 	return query
@@ -103,7 +104,7 @@ func (s *SQLBuilder) updateString(params map[string]interface{}) string {
 
 //deleteString Assemble the delete statement
 func (s *SQLBuilder) deleteString() string {
-	query := fmt.Sprintf("DELETE FROM `%s` %s", s.table, s.where)
+	query := fmt.Sprintf("DELETE FROM %s %s", s.dialect.Quote(s.table), s.where)
 	query = strings.TrimRight(query, " ")
 	query = query + ";"
 	return query

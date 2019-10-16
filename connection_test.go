@@ -36,13 +36,13 @@ func TestMain(m *testing.M) {
 		ShowSql: true,
 	}
 
-	Connect(configs)
+	_ = Connect(configs)
 
 	m.Run()
 }
 
 func TestConnect(t *testing.T) {
-	db := DB()
+	db := Sqlx()
 
 	if db.DriverName() != "mysql" {
 		t.Fatalf("sqlx database connection error")

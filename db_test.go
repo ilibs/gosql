@@ -9,8 +9,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/jmoiron/sqlx"
-
 	"github.com/ilibs/gosql/v2/internal/example/models"
 )
 
@@ -262,14 +260,14 @@ func TestTx(t *testing.T) {
 	RunWithSchema(t, func(t *testing.T) {
 		//1
 		{
-			Tx(func(tx *sqlx.Tx) error {
+			Tx(func(tx *DB) error {
 				for id := 1; id < 10; id++ {
 					user := &models.Users{
 						Id:   id,
 						Name: "test" + strconv.Itoa(id),
 					}
 
-					WithTx(tx).Model(user).Create()
+					tx.Model(user).Create()
 
 					if id == 8 {
 						return errors.New("simulation terminated")
@@ -292,14 +290,14 @@ func TestTx(t *testing.T) {
 
 		//2
 		{
-			Tx(func(tx *sqlx.Tx) error {
+			Tx(func(tx *DB) error {
 				for id := 1; id < 10; id++ {
 					user := &models.Users{
 						Id:   id,
 						Name: "test" + strconv.Itoa(id),
 					}
 
-					WithTx(tx).Model(user).Create()
+					tx.Model(user).Create()
 				}
 
 				return nil
@@ -321,16 +319,16 @@ func TestTx(t *testing.T) {
 func TestWithTx(t *testing.T) {
 	RunWithSchema(t, func(t *testing.T) {
 		{
-			Tx(func(tx *sqlx.Tx) error {
+			Tx(func(tx *DB) error {
 				for id := 1; id < 10; id++ {
-					_, err := WithTx(tx).Exec("INSERT INTO users(id,name,created_at,updated_at) VALUES(?,?,?,?,?)", id, "test"+strconv.Itoa(id), time.Now(), time.Now())
+					_, err := tx.Exec("INSERT INTO users(id,name,created_at,updated_at) VALUES(?,?,?,?,?)", id, "test"+strconv.Itoa(id), time.Now(), time.Now())
 					if err != nil {
 						return err
 					}
 				}
 
 				var num int
-				err := WithTx(tx).QueryRowx("select count(*) from users").Scan(&num)
+				err := tx.QueryRowx("select count(*) from users").Scan(&num)
 
 				if err != nil {
 					return err
@@ -352,14 +350,14 @@ func TestTxx(t *testing.T) {
 
 		ctx, cancel := context.WithCancel(context.Background())
 
-		Txx(ctx, func(ctx context.Context, tx *sqlx.Tx) error {
+		Txx(ctx, func(ctx context.Context, tx *DB) error {
 			for id := 1; id < 10; id++ {
 				user := &models.Users{
 					Id:   id,
 					Name: "test" + strconv.Itoa(id),
 				}
 
-				WithTx(tx).Model(user).Create()
+				tx.Model(user).Create()
 
 				if id == 8 {
 					cancel()
@@ -386,7 +384,7 @@ func TestWrapper_Relation(t *testing.T) {
 	RunWithSchema(t, func(t *testing.T) {
 		initDatas(t)
 		moment := &MomentList{}
-		err := Relation("User", func(b *Builder) {
+		err := Relation("User", func(b *ModelStruct) {
 			b.Where("status = 0")
 		}).Get(moment, "select * from moments")
 
@@ -403,7 +401,7 @@ func TestWrapper_Relation2(t *testing.T) {
 	RunWithSchema(t, func(t *testing.T) {
 		initDatas(t)
 		var moments = make([]*MomentList, 0)
-		err := Relation("User", func(b *Builder) {
+		err := Relation("User", func(b *ModelStruct) {
 			b.Where("status = 1")
 		}).Select(&moments, "select * from moments")
 

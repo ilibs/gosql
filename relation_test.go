@@ -17,7 +17,7 @@ func TestRelationOne2(t *testing.T) {
 	RunWithSchema(t, func(t *testing.T) {
 		initDatas(t)
 		moment := &UserMoment{}
-		err := Model(moment).Relation("Moments", func(b *Builder) {
+		err := Model(moment).Relation("Moments", func(b *ModelStruct) {
 			b.Limit(2)
 		}).Where("id = ?", 5).Get()
 

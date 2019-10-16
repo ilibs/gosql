@@ -5,8 +5,6 @@ import (
 	"log"
 	"reflect"
 	"strconv"
-
-	"github.com/jmoiron/sqlx"
 )
 
 var (
@@ -34,37 +32,34 @@ type IModel interface {
 	PK() string
 }
 
-type Builder struct {
+type ModelStruct struct {
 	model             interface{}
 	modelReflectValue reflect.Value
+	modelEntity       IModel
+	db                *DB
 	SQLBuilder
-	modelEntity IModel
-	wrapper     *Wrapper
 }
 
 // Model construct SQL from Struct
-func Model(model interface{}) *Builder {
-	return &Builder{
-		model:   model,
-		wrapper: &Wrapper{database: defaultLink},
+func Model(model interface{}) *ModelStruct {
+	return &ModelStruct{
+		model: model,
+		db:    &DB{database: Sqlx(defaultLink)},
 	}
 }
 
 // ShowSQL output single sql
-func (b *Builder) ShowSQL() *Builder {
-	b.wrapper.logging = true
+func (b *ModelStruct) ShowSQL() *ModelStruct {
+	b.db.logging = true
 	return b
 }
 
-func (b *Builder) db() ISqlx {
-	return b.wrapper
-}
-
-func (b *Builder) initModel() {
+func (b *ModelStruct) initModel() {
 	if m, ok := b.model.(IModel); ok {
 		b.modelEntity = m
 		b.table = m.TableName()
 		b.modelReflectValue = reflect.ValueOf(m)
+		b.dialect = newDialect(b.db.DriverName())
 	} else {
 		value := reflect.ValueOf(b.model)
 		if value.Kind() != reflect.Ptr {
@@ -105,60 +100,56 @@ func (b *Builder) initModel() {
 			b.modelEntity = m
 			b.table = m.TableName()
 			b.modelReflectValue = reflect.ValueOf(m)
+			b.dialect = newDialect(b.db.DriverName())
 		} else {
 			log.Fatalf("model argument must implementation IModel interface or slice []IModel and pointer,but get %#v", b.model)
 		}
 	}
 }
 
-//WithTx model use tx
-func (b *Builder) WithTx(tx *sqlx.Tx) *Builder {
-	b.wrapper.tx = tx
-	return b
-}
-
 //Hint is set TDDL "/*+TDDL:slave()*/"
-func (b *Builder) Hint(hint string) *Builder {
+func (b *ModelStruct) Hint(hint string) *ModelStruct {
 	b.hint = hint
 	return b
 }
 
 //ForceIndex
-func (b *Builder) ForceIndex(i string) *Builder {
+func (b *ModelStruct) ForceIndex(i string) *ModelStruct {
 	b.forceIndex = i
 	return b
 }
 
 //Where for example Where("id = ? and name = ?",1,"test")
-func (b *Builder) Where(str string, args ...interface{}) *Builder {
+func (b *ModelStruct) Where(str string, args ...interface{}) *ModelStruct {
 	b.SQLBuilder.Where(str, args...)
 	return b
 }
 
-func (b *Builder) Select(fields string) *Builder {
+// Select filter column
+func (b *ModelStruct) Select(fields string) *ModelStruct {
 	b.fields = fields
 	return b
 }
 
 //Limit
-func (b *Builder) Limit(i int) *Builder {
+func (b *ModelStruct) Limit(i int) *ModelStruct {
 	b.limit = strconv.Itoa(i)
 	return b
 }
 
 //Offset
-func (b *Builder) Offset(i int) *Builder {
+func (b *ModelStruct) Offset(i int) *ModelStruct {
 	b.offset = strconv.Itoa(i)
 	return b
 }
 
 //OrderBy for example "id desc"
-func (b *Builder) OrderBy(str string) *Builder {
+func (b *ModelStruct) OrderBy(str string) *ModelStruct {
 	b.order = str
 	return b
 }
 
-func (b *Builder) reflectModel(autoTime []string) map[string]reflect.Value {
+func (b *ModelStruct) reflectModel(autoTime []string) map[string]reflect.Value {
 	fields := mapper.FieldMap(b.modelReflectValue)
 	if autoTime != nil {
 		structAutoTime(fields, autoTime)
@@ -167,34 +158,34 @@ func (b *Builder) reflectModel(autoTime []string) map[string]reflect.Value {
 }
 
 // Relation association table builder handle
-func (b *Builder) Relation(fieldName string, fn BuilderChainFunc) *Builder {
-	if b.wrapper.RelationMap == nil {
-		b.wrapper.RelationMap = make(map[string]BuilderChainFunc)
+func (b *ModelStruct) Relation(fieldName string, fn BuilderChainFunc) *ModelStruct {
+	if b.db.RelationMap == nil {
+		b.db.RelationMap = make(map[string]BuilderChainFunc)
 	}
-	b.wrapper.RelationMap[fieldName] = fn
+	b.db.RelationMap[fieldName] = fn
 	return b
 }
 
 //All get data row from to Struct
-func (b *Builder) Get(zeroValues ...string) (err error) {
+func (b *ModelStruct) Get(zeroValues ...string) (err error) {
 	b.initModel()
 	m := zeroValueFilter(b.reflectModel(nil), zeroValues)
 	//If where is empty, the primary key where condition is generated automatically
 	b.generateWhere(m)
 
-	return b.db().Get(b.model, b.queryString(), b.args...)
+	return b.db.Get(b.model, b.queryString(), b.args...)
 }
 
 //All get data rows from to Struct
-func (b *Builder) All() (err error) {
+func (b *ModelStruct) All() (err error) {
 	b.initModel()
-	return b.db().Select(b.model, b.queryString(), b.args...)
+	return b.db.Select(b.model, b.queryString(), b.args...)
 }
 
 //Create data from to Struct
-func (b *Builder) Create() (lastInsertId int64, err error) {
+func (b *ModelStruct) Create() (lastInsertId int64, err error) {
 	b.initModel()
-	hook := NewHook(b.wrapper)
+	hook := NewHook(b.db)
 	hook.callMethod("BeforeChange", b.modelReflectValue)
 	hook.callMethod("BeforeCreate", b.modelReflectValue)
 	if hook.HasError() > 0 {
@@ -204,7 +195,7 @@ func (b *Builder) Create() (lastInsertId int64, err error) {
 	fields := b.reflectModel(AUTO_CREATE_TIME_FIELDS)
 	m := structToMap(fields)
 
-	result, err := b.db().Exec(b.insertString(m), b.args...)
+	result, err := b.db.Exec(b.insertString(m), b.args...)
 	if err != nil {
 		return 0, err
 	}
@@ -229,13 +220,13 @@ func (b *Builder) Create() (lastInsertId int64, err error) {
 	return lastId, err
 }
 
-func (b *Builder) generateWhere(m map[string]interface{}) {
+func (b *ModelStruct) generateWhere(m map[string]interface{}) {
 	for k, v := range m {
 		b.Where(fmt.Sprintf("%s=?", k), v)
 	}
 }
 
-func (b *Builder) generateWhereForPK(m map[string]interface{}) {
+func (b *ModelStruct) generateWhereForPK(m map[string]interface{}) {
 	pk := b.model.(IModel).PK()
 	pval, has := m[pk]
 	if b.where == "" && has {
@@ -245,9 +236,9 @@ func (b *Builder) generateWhereForPK(m map[string]interface{}) {
 }
 
 //gosql.Model(&User{Id:1,Status:0}).Update("status")
-func (b *Builder) Update(zeroValues ...string) (affected int64, err error) {
+func (b *ModelStruct) Update(zeroValues ...string) (affected int64, err error) {
 	b.initModel()
-	hook := NewHook(b.wrapper)
+	hook := NewHook(b.db)
 	hook.callMethod("BeforeChange", b.modelReflectValue)
 	hook.callMethod("BeforeUpdate", b.modelReflectValue)
 	if hook.HasError() > 0 {
@@ -260,7 +251,7 @@ func (b *Builder) Update(zeroValues ...string) (affected int64, err error) {
 	//If where is empty, the primary key where condition is generated automatically
 	b.generateWhereForPK(m)
 
-	result, err := b.db().Exec(b.updateString(m), b.args...)
+	result, err := b.db.Exec(b.updateString(m), b.args...)
 	if err != nil {
 		return 0, err
 	}
@@ -276,9 +267,9 @@ func (b *Builder) Update(zeroValues ...string) (affected int64, err error) {
 }
 
 //gosql.Model(&User{Id:1}).Delete()
-func (b *Builder) Delete(zeroValues ...string) (affected int64, err error) {
+func (b *ModelStruct) Delete(zeroValues ...string) (affected int64, err error) {
 	b.initModel()
-	hook := NewHook(b.wrapper)
+	hook := NewHook(b.db)
 	hook.callMethod("BeforeChange", b.modelReflectValue)
 	hook.callMethod("BeforeDelete", b.modelReflectValue)
 	if hook.HasError() > 0 {
@@ -289,7 +280,7 @@ func (b *Builder) Delete(zeroValues ...string) (affected int64, err error) {
 	//If where is empty, the primary key where condition is generated automatically
 	b.generateWhere(m)
 
-	result, err := b.db().Exec(b.deleteString(), b.args...)
+	result, err := b.db.Exec(b.deleteString(), b.args...)
 	if err != nil {
 		return 0, err
 	}
@@ -305,13 +296,13 @@ func (b *Builder) Delete(zeroValues ...string) (affected int64, err error) {
 }
 
 //gosql.Model(&User{}).Where("status = 0").Count()
-func (b *Builder) Count(zeroValues ...string) (num int64, err error) {
+func (b *ModelStruct) Count(zeroValues ...string) (num int64, err error) {
 	b.initModel()
 
 	m := zeroValueFilter(b.reflectModel(nil), zeroValues)
 	//If where is empty, the primary key where condition is generated automatically
 	b.generateWhere(m)
 
-	err = b.db().Get(&num, b.countString(), b.args...)
+	err = b.db.Get(&num, b.countString(), b.args...)
 	return num, err
 }

@@ -6,18 +6,16 @@ import (
 	"log"
 	"reflect"
 	"strings"
-
-	"github.com/jmoiron/sqlx"
 )
 
 type Hook struct {
-	wrapper *Wrapper
-	Errs    []error
+	db   *DB
+	Errs []error
 }
 
-func NewHook(wrapper *Wrapper) *Hook {
+func NewHook(db *DB) *Hook {
 	return &Hook{
-		wrapper: wrapper,
+		db: db,
 	}
 }
 
@@ -33,10 +31,10 @@ func (h *Hook) callMethod(methodName string, reflectValue reflect.Value) {
 			method()
 		case func() error:
 			h.Err(method())
-		case func(*sqlx.Tx):
-			method(h.wrapper.tx)
-		case func(*sqlx.Tx) error:
-			h.Err(method(h.wrapper.tx))
+		case func(db *DB):
+			method(h.db)
+		case func(db *DB) error:
+			h.Err(method(h.db))
 		default:
 			log.Fatal(fmt.Errorf("unsupported function %v", methodName))
 		}

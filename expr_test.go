@@ -6,7 +6,8 @@ import (
 
 func TestExpr(t *testing.T) {
 	b := &SQLBuilder{
-		table: "users",
+		table:   "users",
+		dialect: mustGetDialect("mysql"),
 	}
 
 	q := b.updateString(map[string]interface{}{

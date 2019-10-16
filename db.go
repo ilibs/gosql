@@ -21,36 +21,35 @@ type ISqlx interface {
 	Select(dest interface{}, query string, args ...interface{}) error
 	Exec(query string, args ...interface{}) (sql.Result, error)
 	Rebind(query string) string
+	DriverName() string
 }
 
-var (
-	defaultWrapper = Use(defaultLink)
-)
+type BuilderChainFunc func(b *ModelStruct)
 
-type BuilderChainFunc func(b *Builder)
-
-type Wrapper struct {
-	database    string
+type DB struct {
+	database    *sqlx.DB
 	tx          *sqlx.Tx
 	logging     bool
 	RelationMap map[string]BuilderChainFunc
 }
 
-func (w *Wrapper) db() ISqlx {
+// return database instance, if it is a transaction, the transaction priority is higher
+func (w *DB) db() ISqlx {
 	if w.tx != nil {
 		return w.tx.Unsafe()
 	}
 
-	return DB(w.database).Unsafe()
+	return w.database.Unsafe()
 }
 
-func ShowSql() *Wrapper {
+// ShowSql single show sql log
+func ShowSql() *DB {
 	w := Use(defaultLink)
 	w.logging = true
 	return w
 }
 
-func (w *Wrapper) argsIn(query string, args []interface{}) (string, []interface{}, error) {
+func (w *DB) argsIn(query string, args []interface{}) (string, []interface{}, error) {
 	newArgs := make([]interface{}, 0)
 	newQuery, newArgs, err := sqlx.In(query, args...)
 
@@ -61,13 +60,22 @@ func (w *Wrapper) argsIn(query string, args []interface{}) (string, []interface{
 	return newQuery, newArgs, nil
 }
 
+//DriverName wrapper sqlx.DriverName
+func (w *DB) DriverName() string {
+	if w.tx != nil {
+		return w.tx.DriverName()
+	}
+
+	return w.database.DriverName()
+}
+
 //Rebind wrapper sqlx.Rebind
-func (w *Wrapper) Rebind(query string) string {
+func (w *DB) Rebind(query string) string {
 	return w.db().Rebind(query)
 }
 
 //Exec wrapper sqlx.Exec
-func (w *Wrapper) Exec(query string, args ...interface{}) (result sql.Result, err error) {
+func (w *DB) Exec(query string, args ...interface{}) (result sql.Result, err error) {
 	defer func(start time.Time) {
 		logger.Log(&QueryStatus{
 			Query: query,
@@ -83,7 +91,7 @@ func (w *Wrapper) Exec(query string, args ...interface{}) (result sql.Result, er
 }
 
 //Queryx wrapper sqlx.Queryx
-func (w *Wrapper) Queryx(query string, args ...interface{}) (rows *sqlx.Rows, err error) {
+func (w *DB) Queryx(query string, args ...interface{}) (rows *sqlx.Rows, err error) {
 	defer func(start time.Time) {
 		logger.Log(&QueryStatus{
 			Query: query,
@@ -103,7 +111,7 @@ func (w *Wrapper) Queryx(query string, args ...interface{}) (rows *sqlx.Rows, er
 }
 
 //QueryRowx wrapper sqlx.QueryRowx
-func (w *Wrapper) QueryRowx(query string, args ...interface{}) (rows *sqlx.Row) {
+func (w *DB) QueryRowx(query string, args ...interface{}) (rows *sqlx.Row) {
 	defer func(start time.Time) {
 		logger.Log(&QueryStatus{
 			Query: query,
@@ -120,7 +128,7 @@ func (w *Wrapper) QueryRowx(query string, args ...interface{}) (rows *sqlx.Row) 
 }
 
 //Get wrapper sqlx.Get
-func (w *Wrapper) Get(dest interface{}, query string, args ...interface{}) (err error) {
+func (w *DB) Get(dest interface{}, query string, args ...interface{}) (err error) {
 	defer func(start time.Time) {
 		logger.Log(&QueryStatus{
 			Query: query,
@@ -170,7 +178,7 @@ func indirectType(v reflect.Type) reflect.Type {
 }
 
 //Select wrapper sqlx.Select
-func (w *Wrapper) Select(dest interface{}, query string, args ...interface{}) (err error) {
+func (w *DB) Select(dest interface{}, query string, args ...interface{}) (err error) {
 	defer func(start time.Time) {
 		logger.Log(&QueryStatus{
 			Query: query,
@@ -207,13 +215,12 @@ func (w *Wrapper) Select(dest interface{}, query string, args ...interface{}) (e
 }
 
 //Txx the transaction with context
-func (w *Wrapper) Txx(ctx context.Context, fn func(ctx context.Context, tx *sqlx.Tx) error) (err error) {
-	db := DB(w.database)
-	tx, err := db.BeginTxx(ctx, nil)
+func (w *DB) Txx(ctx context.Context, fn func(ctx context.Context, tx *DB) error) (err error) {
+	tx, err := w.database.BeginTxx(ctx, nil)
+
 	if err != nil {
 		return err
 	}
-	tx = tx.Unsafe()
 	defer func() {
 		if err != nil {
 			err := tx.Rollback()
@@ -223,7 +230,7 @@ func (w *Wrapper) Txx(ctx context.Context, fn func(ctx context.Context, tx *sqlx
 		}
 	}()
 
-	err = fn(ctx, tx)
+	err = fn(ctx, &DB{tx: tx})
 	if err == nil {
 		err = tx.Commit()
 	}
@@ -231,13 +238,11 @@ func (w *Wrapper) Txx(ctx context.Context, fn func(ctx context.Context, tx *sqlx
 }
 
 //Tx the transaction
-func (w *Wrapper) Tx(fn func(tx *sqlx.Tx) error) (err error) {
-	db := DB(w.database)
-	tx, err := db.Beginx()
+func (w *DB) Tx(fn func(w *DB) error) (err error) {
+	tx, err := w.database.Beginx()
 	if err != nil {
 		return err
 	}
-	tx = tx.Unsafe()
 	defer func() {
 		if err != nil {
 			err := tx.Rollback()
@@ -246,8 +251,7 @@ func (w *Wrapper) Tx(fn func(tx *sqlx.Tx) error) (err error) {
 			}
 		}
 	}()
-
-	err = fn(tx)
+	err = fn(&DB{tx: tx})
 	if err == nil {
 		err = tx.Commit()
 	}
@@ -257,21 +261,19 @@ func (w *Wrapper) Tx(fn func(tx *sqlx.Tx) error) (err error) {
 // Table database handler from to table name
 // for example:
 // gosql.Use("db2").Table("users")
-// gosql.WithTx(tx).Table("users").Get()
-func (w *Wrapper) Table(t string) *Mapper {
-	return &Mapper{wrapper: w, SQLBuilder: SQLBuilder{table: t}}
+func (w *DB) Table(t string) *Mapper {
+	return &Mapper{db: w, SQLBuilder: SQLBuilder{table: t, dialect: newDialect(w.DriverName())}}
 }
 
 //Model database handler from to struct
 //for example:
 // gosql.Use("db2").Model(&users{})
-// gosql.WithTx(tx).Model(&users{}).Get()
-func (w *Wrapper) Model(m interface{}) *Builder {
-	return &Builder{model: m, wrapper: w}
+func (w *DB) Model(m interface{}) *ModelStruct {
+	return &ModelStruct{model: m, db: w, SQLBuilder: SQLBuilder{dialect: newDialect(w.DriverName())}}
 }
 
 //Import SQL DDL from sql file
-func (w *Wrapper) Import(f string) ([]sql.Result, error) {
+func (w *DB) Import(f string) ([]sql.Result, error) {
 	file, err := os.Open(f)
 	if err != nil {
 		return nil, err
@@ -313,7 +315,7 @@ func (w *Wrapper) Import(f string) ([]sql.Result, error) {
 }
 
 // Relation association table builder handle
-func (w *Wrapper) Relation(name string, fn BuilderChainFunc) *Wrapper {
+func (w *DB) Relation(name string, fn BuilderChainFunc) *DB {
 	if w.RelationMap == nil {
 		w.RelationMap = make(map[string]BuilderChainFunc)
 	}
@@ -322,57 +324,52 @@ func (w *Wrapper) Relation(name string, fn BuilderChainFunc) *Wrapper {
 }
 
 //Use is change database
-func Use(db string) *Wrapper {
-	return &Wrapper{database: db}
-}
-
-//WithTx use the specified transaction session
-func WithTx(tx *sqlx.Tx) *Wrapper {
-	return &Wrapper{tx: tx}
+func Use(db string) *DB {
+	return &DB{database: Sqlx(db)}
 }
 
 //Exec default database
 func Exec(query string, args ...interface{}) (sql.Result, error) {
-	return defaultWrapper.Exec(query, args...)
+	return Use(defaultLink).Exec(query, args...)
 }
 
 //Queryx default database
 func Queryx(query string, args ...interface{}) (*sqlx.Rows, error) {
-	return defaultWrapper.Queryx(query, args...)
+	return Use(defaultLink).Queryx(query, args...)
 }
 
 //QueryRowx default database
 func QueryRowx(query string, args ...interface{}) *sqlx.Row {
-	return defaultWrapper.QueryRowx(query, args...)
+	return Use(defaultLink).QueryRowx(query, args...)
 }
 
 //Txx default database the transaction with context
-func Txx(ctx context.Context, fn func(ctx context.Context, tx *sqlx.Tx) error) error {
-	return defaultWrapper.Txx(ctx, fn)
+func Txx(ctx context.Context, fn func(ctx context.Context, tx *DB) error) error {
+	return Use(defaultLink).Txx(ctx, fn)
 }
 
 //Tx default database the transaction
-func Tx(fn func(tx *sqlx.Tx) error) error {
-	return defaultWrapper.Tx(fn)
+func Tx(fn func(tx *DB) error) error {
+	return Use(defaultLink).Tx(fn)
 }
 
 //Get default database
 func Get(dest interface{}, query string, args ...interface{}) error {
-	return defaultWrapper.Get(dest, query, args...)
+	return Use(defaultLink).Get(dest, query, args...)
 }
 
 //Select default database
 func Select(dest interface{}, query string, args ...interface{}) error {
-	return defaultWrapper.Select(dest, query, args...)
+	return Use(defaultLink).Select(dest, query, args...)
 }
 
 // Import SQL DDL from io.Reader
 func Import(f string) ([]sql.Result, error) {
-	return defaultWrapper.Import(f)
+	return Use(defaultLink).Import(f)
 }
 
 // Relation association table builder handle
-func Relation(name string, fn BuilderChainFunc) *Wrapper {
+func Relation(name string, fn BuilderChainFunc) *DB {
 	w := Use(defaultLink)
 	w.RelationMap = make(map[string]BuilderChainFunc)
 	w.RelationMap[name] = fn
@@ -382,5 +379,4 @@ func Relation(name string, fn BuilderChainFunc) *Wrapper {
 // SetDefaultLink set default link name
 func SetDefaultLink(db string) {
 	defaultLink = db
-	defaultWrapper = Use(defaultLink)
 }

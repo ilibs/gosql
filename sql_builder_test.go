@@ -8,10 +8,11 @@ import (
 func TestSQLBuilder_queryString(t *testing.T) {
 
 	b := &SQLBuilder{
-		table:  "users",
-		order:  "id desc",
-		limit:  "0",
-		offset: "10",
+		dialect: mustGetDialect("mysql"),
+		table:   "users",
+		order:   "id desc",
+		limit:   "0",
+		offset:  "10",
 	}
 
 	b.Where("id = ?", 1)
@@ -25,6 +26,7 @@ func TestSQLBuilder_queryString(t *testing.T) {
 func TestSQLBuilder_queryForceIndexString(t *testing.T) {
 
 	b := &SQLBuilder{
+		dialect:    mustGetDialect("mysql"),
 		table:      "users",
 		order:      "id desc",
 		forceIndex: "idx_user",
@@ -43,7 +45,8 @@ func TestSQLBuilder_queryForceIndexString(t *testing.T) {
 func TestSQLBuilder_insertString(t *testing.T) {
 
 	b := &SQLBuilder{
-		table: "users",
+		dialect: mustGetDialect("mysql"),
+		table:   "users",
 	}
 
 	query := b.insertString(map[string]interface{}{
@@ -62,7 +65,8 @@ func TestSQLBuilder_insertString(t *testing.T) {
 func TestSQLBuilder_updateString(t *testing.T) {
 
 	b := &SQLBuilder{
-		table: "users",
+		dialect: mustGetDialect("mysql"),
+		table:   "users",
 	}
 
 	b.Where("id = ?", 1)
@@ -81,7 +85,8 @@ func TestSQLBuilder_updateString(t *testing.T) {
 func TestSQLBuilder_deleteString(t *testing.T) {
 
 	b := &SQLBuilder{
-		table: "users",
+		dialect: mustGetDialect("mysql"),
+		table:   "users",
 	}
 
 	b.Where("id = ?", 1)
@@ -96,7 +101,8 @@ func TestSQLBuilder_deleteString(t *testing.T) {
 func TestSQLBuilder_countString(t *testing.T) {
 
 	b := &SQLBuilder{
-		table: "users",
+		dialect: mustGetDialect("mysql"),
+		table:   "users",
 	}
 	b.Where("id = ?", 1)
 
@@ -104,5 +110,32 @@ func TestSQLBuilder_countString(t *testing.T) {
 
 	if query != "SELECT count(*) FROM `users` WHERE (id = ?);" {
 		t.Error("sql builder count error", query)
+	}
+}
+
+func TestSQLBuilder_Dialect(t *testing.T) {
+	testData := map[string]string{
+		"mysql":    "INSERT INTO `users` (`created_at`,`email`,`id`,`name`,`updated_at`) VALUES(?,?,?,?,?);",
+		"postgres": `INSERT INTO "users" ("created_at","email","id","name","updated_at") VALUES(?,?,?,?,?);`,
+		"sqlite3":  `INSERT INTO "users" ("created_at","email","id","name","updated_at") VALUES(?,?,?,?,?);`,
+	}
+
+	for k, v := range testData {
+		b := &SQLBuilder{
+			dialect: mustGetDialect(k),
+			table:   "users",
+		}
+
+		query := b.insertString(map[string]interface{}{
+			"id":         1,
+			"name":       "test",
+			"email":      "test@test.com",
+			"created_at": "2018-07-11 11:58:21",
+			"updated_at": "2018-07-11 11:58:21",
+		})
+
+		if query != v {
+			t.Error(fmt.Sprintf("sql builder %s dialect insert error", k), query)
+		}
 	}
 }

@@ -23,7 +23,8 @@ gosql.Use(db).Model(&Users{}}).Get()
 
 ## Transaction context switching
 ```go
-gosql.WithTx(tx *sqlx.Tx)
-gosql.WithTx(tx).Table("xxxx").Where("id = ?",1).Get(&user)
-gosql.WithTx(tx).Model(&Users{}).Get()
+gosql.Tx(func(tx *gosql.DB){
+    tx.Table("xxxx").Where("id = ?",1).Get(&user)
+    tx.Model(&Users{}).Get()	
+})
 ```

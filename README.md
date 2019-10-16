@@ -16,6 +16,7 @@ The package based on [sqlx](https://github.com/jmoiron/sqlx), It's simple and ke
 - Remove Model interface DbName() function,use the Use() function 
 - Uniform API design specification, see [APIDESIGN](APIDESIGN.md)
 - Relation add `connection:"db2"` struct tag, Solve the cross-library connection problem caused by deleting DbName()
+- Discard the WithTx function
 
 ## Usage
 
@@ -39,8 +40,7 @@ func main(){
 
     //connection database
     gosql.Connect(configs)
-
-    gosql.DB().QueryRowx("select * from users where id = 1")
+    gosql.QueryRowx("select * from users where id = 1")
 }
 
 ```
@@ -156,7 +156,7 @@ gosql.Model(&user).Get("status")
 The `Tx` function has a callback function, if an error is returned, the transaction rollback
 
 ```go
-gosql.Tx(func(tx *sqlx.Tx) error {
+gosql.Tx(func(tx *gosql.DB) error {
     for id := 1; id < 10; id++ {
         user := &Users{
             Id:    id,
@@ -164,8 +164,8 @@ gosql.Tx(func(tx *sqlx.Tx) error {
             Email: "test" + strconv.Itoa(id) + "@test.com",
         }
 		
-		//v2
-        gosql.WithTx(tx).Model(user).Create()
+		//v2 support, do some database operations in the transaction (use 'tx' from this point, not 'gosql')
+        tx.Model(user).Create()
 
         if id == 8 {
             return errors.New("interrupt the transaction")
@@ -174,7 +174,7 @@ gosql.Tx(func(tx *sqlx.Tx) error {
 
     //query with transaction
     var num int
-    err := gosql.WithTx(tx).QueryRowx("select count(*) from user_id = 1").Scan(&num)
+    err := tx.QueryRowx("select count(*) from user_id = 1").Scan(&num)
 
     if err != nil {
         return err
@@ -234,8 +234,8 @@ gosql.Table("users").Where("id = ?", 1).Count()
 //Change database
 gosql.Use("db2").Table("users").Where("id = ?", 1).Count()
 
-//Transaction `tx` is *sqlx.Tx for v2
-gosql.WithTx(tx).Table("users").Where("id = ?", 1}).Count()
+//Transaction `tx`
+tx.Table("users").Where("id = ?", 1}).Count()
 ```
 
 

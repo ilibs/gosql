@@ -93,8 +93,8 @@ VALUES
 )
 
 func RunWithSchema(t *testing.T, test func(t *testing.T)) {
-	db := DB()
-	db2 := DB("db2")
+	db := Sqlx()
+	db2 := Sqlx("db2")
 	defer func() {
 		for k := range createSchemas {
 			_, err := db.Exec(fmt.Sprintf("DROP TABLE IF EXISTS `%s`", k))
@@ -124,8 +124,8 @@ func RunWithSchema(t *testing.T, test func(t *testing.T)) {
 }
 
 func initDatas(t *testing.T) {
-	db := DB()
-	db2 := DB("db2")
+	db := Sqlx()
+	db2 := Sqlx("db2")
 	for k, v := range datas {
 		udb := db
 		if k == "photos" {
@@ -536,7 +536,7 @@ func TestBuilder_Relation1(t *testing.T) {
 	RunWithSchema(t, func(t *testing.T) {
 		initDatas(t)
 		moment := &MomentList{}
-		err := Model(moment).Relation("User", func(b *Builder) {
+		err := Model(moment).Relation("User", func(b *ModelStruct) {
 			b.Where("status = 1")
 		}).Where("status = 1 and id = ?", 14).Get()
 
@@ -552,7 +552,7 @@ func TestBuilder_Relation1(t *testing.T) {
 func TestBuilder_Relation2(t *testing.T) {
 	RunWithSchema(t, func(t *testing.T) {
 		var moments = make([]*MomentList, 0)
-		err := Model(&moments).Relation("User", func(b *Builder) {
+		err := Model(&moments).Relation("User", func(b *ModelStruct) {
 			b.Where("status = 0")
 		}).Where("status = 1").Limit(10).All()
 
