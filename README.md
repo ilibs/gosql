@@ -379,7 +379,7 @@ Relation Where:
 
 ```go
 moment := &MomentList{}
-err := gosql.Relation("User" , func(b *Builder) {
+err := gosql.Relation("User" , func(b *gosql.ModelStruct) {
     //this is builder instance,
     b.Where("gender = 0")
 }).Get(moment , "select * from moments")
@@ -410,10 +410,10 @@ func (u *Users) BeforeCreate() (err error) {
   return
 }
 
-func (u *Users) AfterCreate(tx *sqlx.tx) (err error) {
+func (u *Users) AfterCreate(tx *gosql.DB) (err error) {
   if u.Id == 1 {
     u.Email = "after@test.com"
-    Model(u,tx).Update()
+    tx.Model(u).Update()
   }
   return
 }
@@ -441,8 +441,8 @@ Hook func type supports multiple ways:
 ```
 func (u *Users) BeforeCreate()
 func (u *Users) BeforeCreate() (err error)
-func (u *Users) BeforeCreate(tx *sqlx.Tx)
-func (u *Users) BeforeCreate(tx *sqlx.Tx) (err error)
+func (u *Users) BeforeCreate(tx *gosql.DB)
+func (u *Users) BeforeCreate(tx *gosql.DB) (err error)
 ```
 
 
