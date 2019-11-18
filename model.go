@@ -227,7 +227,7 @@ func (b *ModelStruct) generateWhere(m map[string]interface{}) {
 }
 
 func (b *ModelStruct) generateWhereForPK(m map[string]interface{}) {
-	pk := b.model.(IModel).PK()
+	pk := b.modelEntity.PK()
 	pval, has := m[pk]
 	if b.where == "" && has {
 		b.Where(fmt.Sprintf("%s=?", pk), pval)
