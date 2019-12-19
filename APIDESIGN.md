@@ -12,7 +12,7 @@ type IModel interface {
 
 ## Use sqlx
 ```go
-gosql.DB() //return native sqlx
+gosql.Sqlx() //return native sqlx
 ```
 ## Change database
 ```go
@@ -23,7 +23,7 @@ gosql.Use(db).Model(&Users{}}).Get()
 
 ## Transaction context switching
 ```go
-gosql.Tx(func(tx *gosql.DB){
+gosql.Use(db).Tx(func(tx *gosql.DB){
     tx.Table("xxxx").Where("id = ?",1).Get(&user)
     tx.Model(&Users{}).Get()	
 })
