@@ -86,7 +86,7 @@ func (b *ModelStruct) initModel() {
 		}
 
 		if tp.Kind() != reflect.Slice {
-			log.Fatalf("model argument must slice, but get %#v", b.model)
+			log.Fatalf("model argument must be slice, but get %#v", b.model)
 		}
 
 		tpEl := tp.Elem()
