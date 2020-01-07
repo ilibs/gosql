@@ -25,4 +25,6 @@ jobs:
         env:
           MYSQL_TEST_DSN1: "root:root@tcp(127.0.0.1:3306)/db1?parseTime=true"
           MYSQL_TEST_DSN2: "root:root@tcp(127.0.0.1:3306)/db2?parseTime=true"
-        run: go get && go test -v ./...
+        run: |
+          go get && make test
+          bash <(curl -s https://codecov.io/bash)

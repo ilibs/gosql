@@ -1,7 +1,6 @@
 # gosql
 The package based on [sqlx](https://github.com/jmoiron/sqlx), It's simple and keep simple
 
-<a href="https://travis-ci.org/ilibs/gosql"><img src="https://travis-ci.org/ilibs/gosql.svg" alt="Build Status"></a>
 <a href="https://github.com/ilibs/gosql/actions"><img src="https://github.com/ilibs/gosql/workflows/gosql/badge.svg" alt="Build Status"></a>
 <a href="https://codecov.io/gh/ilibs/gosql"><img src="https://codecov.io/gh/ilibs/gosql/branch/master/graph/badge.svg" alt="codecov"></a>
 <a href="https://goreportcard.com/report/github.com/ilibs/gosql"><img src="https://goreportcard.com/badge/github.com/ilibs/gosql" alt="Go Report Card
