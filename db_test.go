@@ -2,14 +2,13 @@ package gosql
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"strconv"
 	"testing"
 	"time"
 
-	"github.com/ilibs/gosql/v2/internal/example/models"
+	"git.verystar.cn/gopkg/gosql/v2/internal/example/models"
 )
 
 func TestShowSql(t *testing.T) {
@@ -319,9 +318,9 @@ func TestTx(t *testing.T) {
 func TestWithTx(t *testing.T) {
 	RunWithSchema(t, func(t *testing.T) {
 		{
-			Tx(func(tx *DB) error {
+			err := Tx(func(tx *DB) error {
 				for id := 1; id < 10; id++ {
-					_, err := tx.Exec("INSERT INTO users(id,name,created_at,updated_at) VALUES(?,?,?,?,?)", id, "test"+strconv.Itoa(id), time.Now(), time.Now())
+					_, err := tx.Exec("INSERT INTO users(id,name,status,created_at,updated_at) VALUES(?,?,?,?,?)", id, "test"+strconv.Itoa(id), 1, time.Now(), time.Now())
 					if err != nil {
 						return err
 					}
@@ -341,6 +340,9 @@ func TestWithTx(t *testing.T) {
 				return nil
 			})
 
+			if err != nil {
+				t.Fatalf("with transaction failed %s", err)
+			}
 		}
 	})
 }
@@ -350,7 +352,7 @@ func TestTxx(t *testing.T) {
 
 		ctx, cancel := context.WithCancel(context.Background())
 
-		Txx(ctx, func(ctx context.Context, tx *DB) error {
+		err := Txx(ctx, func(ctx context.Context, tx *DB) error {
 			for id := 1; id < 10; id++ {
 				user := &models.Users{
 					Id:   id,
@@ -367,6 +369,10 @@ func TestTxx(t *testing.T) {
 
 			return nil
 		})
+
+		if err == nil {
+			t.Fatalf("with transaction must be cancel error")
+		}
 
 		num, err := Model(&models.Users{}).Count()
 
@@ -388,8 +394,8 @@ func TestWrapper_Relation(t *testing.T) {
 			b.Where("status = 0")
 		}).Get(moment, "select * from moments")
 
-		b, _ := json.MarshalIndent(moment, "", "	")
-		fmt.Println(string(b), err)
+		//b, _ := json.MarshalIndent(moment, "", "	")
+		//fmt.Println(string(b), err)
 
 		if err != nil {
 			t.Fatal(err)
@@ -407,6 +413,50 @@ func TestWrapper_Relation2(t *testing.T) {
 
 		if err != nil {
 			t.Fatal(err)
+		}
+	})
+}
+
+func TestDB_Begin(t *testing.T) {
+	RunWithSchema(t, func(t *testing.T) {
+		tx, err := Begin()
+		if err != nil {
+			t.Fatalf("with transaction begin error %s", err)
+		}
+
+		var fn = func() error {
+			for id := 1; id < 10; id++ {
+				_, err := tx.Exec("INSERT INTO users(id,name,status,created_at,updated_at) VALUES(?,?,?,?,?)", id, "test"+strconv.Itoa(id), 1, time.Now(), time.Now())
+				if err != nil {
+					return err
+				}
+			}
+
+			var num int
+			err = tx.QueryRowx("select count(*) from users").Scan(&num)
+
+			if err != nil {
+				return err
+			}
+
+			if num != 9 {
+				return errors.New("with transaction create failed")
+			}
+			return nil
+		}
+
+		err = fn()
+
+		if err != nil {
+			err := tx.Rollback()
+			if err != nil {
+				t.Fatalf("with transaction rollback error %s", err)
+			}
+		}
+
+		err = tx.Commit()
+		if err != nil {
+			t.Fatalf("with transaction commit error %s", err)
 		}
 	})
 }

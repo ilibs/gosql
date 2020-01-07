@@ -69,6 +69,25 @@ func (w *DB) DriverName() string {
 	return w.database.DriverName()
 }
 
+//Beginx begins a transaction and returns an *gosql.DB instead of an *sql.Tx.
+func (w *DB) Begin() (*DB, error) {
+	tx, err := w.database.Beginx()
+	if err != nil {
+		return nil, err
+	}
+	return &DB{tx: tx}, nil
+}
+
+// Commit commits the transaction.
+func (w *DB) Commit() error {
+	return w.tx.Commit()
+}
+
+// Rollback aborts the transaction.
+func (w *DB) Rollback() error {
+	return w.tx.Rollback()
+}
+
 //Rebind wrapper sqlx.Rebind
 func (w *DB) Rebind(query string) string {
 	return w.db().Rebind(query)
@@ -321,6 +340,11 @@ func (w *DB) Relation(name string, fn BuilderChainFunc) *DB {
 	}
 	w.RelationMap[name] = fn
 	return w
+}
+
+//Beginx begins a transaction for default database and returns an *gosql.DB instead of an *sql.Tx.
+func Begin() (*DB, error) {
+	return Use(defaultLink).Begin()
 }
 
 //Use is change database
