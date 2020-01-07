@@ -23,7 +23,7 @@ before_install:
   - export MYSQL_TEST_DSN2="travis:@/db2?parseTime=true"
 
 script:
-  - make test
+  - go get && make test
 
 after_success:
     - bash <(curl -s https://codecov.io/bash)
