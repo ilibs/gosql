@@ -186,6 +186,23 @@ gosql.Tx(func(tx *gosql.DB) error {
 
 > If you need to invoke context, you can use `gosql.Txx`
 
+Now support gosql.Begin() or gosql.Use("other").Begin() for example:
+```go
+tx, err := gosql.Begin()
+if err != nil {
+    return err
+}
+
+for id := 1; id < 10; id++ {
+    _, err := tx.Exec("INSERT INTO users(id,name,status,created_at,updated_at) VALUES(?,?,?,?,?)", id, "test"+strconv.Itoa(id), 1, time.Now(), time.Now())
+    if err != nil {
+        return tx.Rollback()
+    }
+}
+
+return tx.Commit()
+```
+
 ## Automatic time
 If your fields contain the following field names, they will be updated automatically
 
