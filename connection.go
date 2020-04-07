@@ -3,6 +3,7 @@ package gosql
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 	"log"
 	"strings"
 	"time"
@@ -27,7 +28,7 @@ func Sqlx(name ...string) *sqlx.DB {
 
 	engine, ok := dbService[dbName]
 	if !ok {
-		log.Fatalf("[db] the database link `%s` is not configured", dbName)
+		panic(fmt.Sprintf("[db] the database link `%s` is not configured", dbName))
 	}
 	return engine
 }
