@@ -1,6 +1,7 @@
 package gosql
 
 import (
+	"database/sql"
 	"errors"
 	"log"
 	"strings"
@@ -9,10 +10,10 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-//defaultLink set database default link name
+// defaultLink set database default link name
 var defaultLink = "default"
 
-//If database fatal exit
+// If database fatal exit
 var FatalExit = true
 var dbService = make(map[string]*sqlx.DB, 0)
 
@@ -36,7 +37,22 @@ func List() map[string]*sqlx.DB {
 	return dbService
 }
 
-//Connect database
+// Open open gosql.DB with sqlx
+func Open(driver, dbSource string) (*DB, error) {
+	db, err := sqlx.Connect(driver, dbSource)
+
+	if err != nil {
+		return nil, err
+	}
+	return &DB{database: db}, nil
+}
+
+// OpenWithDB open gosql.DB with sql.DB
+func OpenWithDB(driver string, db *sql.DB) *DB {
+	return &DB{database: sqlx.NewDb(db, driver)}
+}
+
+// Connect database
 func Connect(configs map[string]*Config) (err error) {
 
 	var errs []string
