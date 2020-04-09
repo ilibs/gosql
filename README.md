@@ -395,7 +395,7 @@ Relation Where:
 
 ```go
 moment := &MomentList{}
-err := gosql.Relation("User" , func(b *gosql.ModelStruct) {
+err := gosql.Relation("User" , func(b *gosql.Builder) {
     //this is builder instance,
     b.Where("gender = 0")
 }).Get(moment , "select * from moments")
