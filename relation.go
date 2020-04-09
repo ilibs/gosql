@@ -30,8 +30,8 @@ func eachField(t reflect.Type, fn func(field reflect.StructField, val string, na
 	return nil
 }
 
-func newModel(value reflect.Value, connection string) *ModelStruct {
-	var m *ModelStruct
+func newModel(value reflect.Value, connection string) *Builder {
+	var m *Builder
 	if connection != "" {
 		m = Use(connection).Model(value.Interface())
 	} else {

@@ -32,7 +32,7 @@ type IModel interface {
 	PK() string
 }
 
-type ModelStruct struct {
+type Builder struct {
 	model             interface{}
 	modelReflectValue reflect.Value
 	modelEntity       IModel
@@ -41,20 +41,20 @@ type ModelStruct struct {
 }
 
 // Model construct SQL from Struct
-func Model(model interface{}) *ModelStruct {
-	return &ModelStruct{
+func Model(model interface{}) *Builder {
+	return &Builder{
 		model: model,
 		db:    &DB{database: Sqlx(defaultLink)},
 	}
 }
 
 // ShowSQL output single sql
-func (b *ModelStruct) ShowSQL() *ModelStruct {
+func (b *Builder) ShowSQL() *Builder {
 	b.db.logging = true
 	return b
 }
 
-func (b *ModelStruct) initModel() {
+func (b *Builder) initModel() {
 	if m, ok := b.model.(IModel); ok {
 		b.modelEntity = m
 		b.table = m.TableName()
@@ -108,48 +108,48 @@ func (b *ModelStruct) initModel() {
 }
 
 //Hint is set TDDL "/*+TDDL:slave()*/"
-func (b *ModelStruct) Hint(hint string) *ModelStruct {
+func (b *Builder) Hint(hint string) *Builder {
 	b.hint = hint
 	return b
 }
 
 //ForceIndex
-func (b *ModelStruct) ForceIndex(i string) *ModelStruct {
+func (b *Builder) ForceIndex(i string) *Builder {
 	b.forceIndex = i
 	return b
 }
 
 //Where for example Where("id = ? and name = ?",1,"test")
-func (b *ModelStruct) Where(str string, args ...interface{}) *ModelStruct {
+func (b *Builder) Where(str string, args ...interface{}) *Builder {
 	b.SQLBuilder.Where(str, args...)
 	return b
 }
 
 // Select filter column
-func (b *ModelStruct) Select(fields string) *ModelStruct {
+func (b *Builder) Select(fields string) *Builder {
 	b.fields = fields
 	return b
 }
 
 //Limit
-func (b *ModelStruct) Limit(i int) *ModelStruct {
+func (b *Builder) Limit(i int) *Builder {
 	b.limit = strconv.Itoa(i)
 	return b
 }
 
 //Offset
-func (b *ModelStruct) Offset(i int) *ModelStruct {
+func (b *Builder) Offset(i int) *Builder {
 	b.offset = strconv.Itoa(i)
 	return b
 }
 
 //OrderBy for example "id desc"
-func (b *ModelStruct) OrderBy(str string) *ModelStruct {
+func (b *Builder) OrderBy(str string) *Builder {
 	b.order = str
 	return b
 }
 
-func (b *ModelStruct) reflectModel(autoTime []string) map[string]reflect.Value {
+func (b *Builder) reflectModel(autoTime []string) map[string]reflect.Value {
 	fields := mapper.FieldMap(b.modelReflectValue)
 	if autoTime != nil {
 		structAutoTime(fields, autoTime)
@@ -158,7 +158,7 @@ func (b *ModelStruct) reflectModel(autoTime []string) map[string]reflect.Value {
 }
 
 // Relation association table builder handle
-func (b *ModelStruct) Relation(fieldName string, fn BuilderChainFunc) *ModelStruct {
+func (b *Builder) Relation(fieldName string, fn BuilderChainFunc) *Builder {
 	if b.db.RelationMap == nil {
 		b.db.RelationMap = make(map[string]BuilderChainFunc)
 	}
@@ -167,7 +167,7 @@ func (b *ModelStruct) Relation(fieldName string, fn BuilderChainFunc) *ModelStru
 }
 
 //All get data row from to Struct
-func (b *ModelStruct) Get(zeroValues ...string) (err error) {
+func (b *Builder) Get(zeroValues ...string) (err error) {
 	b.initModel()
 	m := zeroValueFilter(b.reflectModel(nil), zeroValues)
 	//If where is empty, the primary key where condition is generated automatically
@@ -177,13 +177,13 @@ func (b *ModelStruct) Get(zeroValues ...string) (err error) {
 }
 
 //All get data rows from to Struct
-func (b *ModelStruct) All() (err error) {
+func (b *Builder) All() (err error) {
 	b.initModel()
 	return b.db.Select(b.model, b.queryString(), b.args...)
 }
 
 //Create data from to Struct
-func (b *ModelStruct) Create() (lastInsertId int64, err error) {
+func (b *Builder) Create() (lastInsertId int64, err error) {
 	b.initModel()
 	hook := NewHook(b.db)
 	hook.callMethod("BeforeChange", b.modelReflectValue)
@@ -220,13 +220,13 @@ func (b *ModelStruct) Create() (lastInsertId int64, err error) {
 	return lastId, err
 }
 
-func (b *ModelStruct) generateWhere(m map[string]interface{}) {
+func (b *Builder) generateWhere(m map[string]interface{}) {
 	for k, v := range m {
 		b.Where(fmt.Sprintf("%s=?", k), v)
 	}
 }
 
-func (b *ModelStruct) generateWhereForPK(m map[string]interface{}) {
+func (b *Builder) generateWhereForPK(m map[string]interface{}) {
 	pk := b.modelEntity.PK()
 	pval, has := m[pk]
 	if b.where == "" && has {
@@ -236,7 +236,7 @@ func (b *ModelStruct) generateWhereForPK(m map[string]interface{}) {
 }
 
 //gosql.Model(&User{Id:1,Status:0}).Update("status")
-func (b *ModelStruct) Update(zeroValues ...string) (affected int64, err error) {
+func (b *Builder) Update(zeroValues ...string) (affected int64, err error) {
 	b.initModel()
 	hook := NewHook(b.db)
 	hook.callMethod("BeforeChange", b.modelReflectValue)
@@ -267,7 +267,7 @@ func (b *ModelStruct) Update(zeroValues ...string) (affected int64, err error) {
 }
 
 //gosql.Model(&User{Id:1}).Delete()
-func (b *ModelStruct) Delete(zeroValues ...string) (affected int64, err error) {
+func (b *Builder) Delete(zeroValues ...string) (affected int64, err error) {
 	b.initModel()
 	hook := NewHook(b.db)
 	hook.callMethod("BeforeChange", b.modelReflectValue)
@@ -296,7 +296,7 @@ func (b *ModelStruct) Delete(zeroValues ...string) (affected int64, err error) {
 }
 
 //gosql.Model(&User{}).Where("status = 0").Count()
-func (b *ModelStruct) Count(zeroValues ...string) (num int64, err error) {
+func (b *Builder) Count(zeroValues ...string) (num int64, err error) {
 	b.initModel()
 
 	m := zeroValueFilter(b.reflectModel(nil), zeroValues)

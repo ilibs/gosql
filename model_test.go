@@ -536,7 +536,7 @@ func TestBuilder_Relation1(t *testing.T) {
 	RunWithSchema(t, func(t *testing.T) {
 		initDatas(t)
 		moment := &MomentList{}
-		err := Model(moment).Relation("User", func(b *ModelStruct) {
+		err := Model(moment).Relation("User", func(b *Builder) {
 			b.Where("status = 1")
 		}).Where("status = 1 and id = ?", 14).Get()
 
@@ -552,7 +552,7 @@ func TestBuilder_Relation1(t *testing.T) {
 func TestBuilder_Relation2(t *testing.T) {
 	RunWithSchema(t, func(t *testing.T) {
 		var moments = make([]*MomentList, 0)
-		err := Model(&moments).Relation("User", func(b *ModelStruct) {
+		err := Model(&moments).Relation("User", func(b *Builder) {
 			b.Where("status = 0")
 		}).Where("status = 1").Limit(10).All()
 

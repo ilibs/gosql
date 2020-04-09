@@ -24,7 +24,7 @@ type ISqlx interface {
 	DriverName() string
 }
 
-type BuilderChainFunc func(b *ModelStruct)
+type BuilderChainFunc func(b *Builder)
 
 type DB struct {
 	database    *sqlx.DB
@@ -287,8 +287,8 @@ func (w *DB) Table(t string) *Mapper {
 //Model database handler from to struct
 //for example:
 // gosql.Use("db2").Model(&users{})
-func (w *DB) Model(m interface{}) *ModelStruct {
-	return &ModelStruct{model: m, db: w, SQLBuilder: SQLBuilder{dialect: newDialect(w.DriverName())}}
+func (w *DB) Model(m interface{}) *Builder {
+	return &Builder{model: m, db: w, SQLBuilder: SQLBuilder{dialect: newDialect(w.DriverName())}}
 }
 
 //Import SQL DDL from sql file

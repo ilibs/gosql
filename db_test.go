@@ -390,7 +390,7 @@ func TestWrapper_Relation(t *testing.T) {
 	RunWithSchema(t, func(t *testing.T) {
 		initDatas(t)
 		moment := &MomentList{}
-		err := Relation("User", func(b *ModelStruct) {
+		err := Relation("User", func(b *Builder) {
 			b.Where("status = 0")
 		}).Get(moment, "select * from moments")
 
@@ -407,7 +407,7 @@ func TestWrapper_Relation2(t *testing.T) {
 	RunWithSchema(t, func(t *testing.T) {
 		initDatas(t)
 		var moments = make([]*MomentList, 0)
-		err := Relation("User", func(b *ModelStruct) {
+		err := Relation("User", func(b *Builder) {
 			b.Where("status = 1")
 		}).Select(&moments, "select * from moments")
 
