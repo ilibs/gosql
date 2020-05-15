@@ -2,7 +2,6 @@ package gosql
 
 import (
 	"errors"
-	"fmt"
 	"log"
 	"reflect"
 	"strings"
@@ -36,7 +35,7 @@ func (h *Hook) callMethod(methodName string, reflectValue reflect.Value) {
 		case func(db *DB) error:
 			h.Err(method(h.db))
 		default:
-			log.Fatal(fmt.Errorf("unsupported function %v", methodName))
+			log.Panicf("unsupported function %v", methodName)
 		}
 	}
 }

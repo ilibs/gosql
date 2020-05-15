@@ -9,7 +9,7 @@ import (
 
 var (
 	mapper = NewReflectMapper("db")
-	//Insert database automatically updates fields
+	// Insert database automatically updates fields
 	AUTO_CREATE_TIME_FIELDS = []string{
 		"create_time",
 		"create_at",
@@ -18,7 +18,7 @@ var (
 		"update_at",
 		"updated_at",
 	}
-	//Update database automatically updates fields
+	// Update database automatically updates fields
 	AUTO_UPDATE_TIME_FIELDS = []string{
 		"update_time",
 		"update_at",
@@ -26,7 +26,7 @@ var (
 	}
 )
 
-//Model interface
+// Model interface
 type IModel interface {
 	TableName() string
 	PK() string
@@ -63,11 +63,11 @@ func (b *Builder) initModel() {
 	} else {
 		value := reflect.ValueOf(b.model)
 		if value.Kind() != reflect.Ptr {
-			log.Fatalf("model argument must pass a pointer, not a value %#v", b.model)
+			log.Panicf("model argument must pass a pointer, not a value %#v", b.model)
 		}
 
 		if value.IsNil() {
-			log.Fatalf("model argument cannot be nil pointer passed")
+			log.Panicf("model argument cannot be nil pointer passed")
 		}
 
 		tp := reflect.Indirect(value).Type()
@@ -86,12 +86,12 @@ func (b *Builder) initModel() {
 		}
 
 		if tp.Kind() != reflect.Slice {
-			log.Fatalf("model argument must be slice, but get %#v", b.model)
+			log.Panicf("model argument must slice, but get %#v", b.model)
 		}
 
 		tpEl := tp.Elem()
 
-		//Compatible with []*Struct or []Struct
+		// Compatible with []*Struct or []Struct
 		if tpEl.Kind() == reflect.Ptr {
 			tpEl = tpEl.Elem()
 		}
@@ -102,24 +102,24 @@ func (b *Builder) initModel() {
 			b.modelReflectValue = reflect.ValueOf(m)
 			b.dialect = newDialect(b.db.DriverName())
 		} else {
-			log.Fatalf("model argument must implementation IModel interface or slice []IModel and pointer,but get %#v", b.model)
+			log.Panicf("model argument must implementation IModel interface or slice []IModel and pointer,but get %#v", b.model)
 		}
 	}
 }
 
-//Hint is set TDDL "/*+TDDL:slave()*/"
+// Hint is set TDDL "/*+TDDL:slave()*/"
 func (b *Builder) Hint(hint string) *Builder {
 	b.hint = hint
 	return b
 }
 
-//ForceIndex
+// ForceIndex
 func (b *Builder) ForceIndex(i string) *Builder {
 	b.forceIndex = i
 	return b
 }
 
-//Where for example Where("id = ? and name = ?",1,"test")
+// Where for example Where("id = ? and name = ?",1,"test")
 func (b *Builder) Where(str string, args ...interface{}) *Builder {
 	b.SQLBuilder.Where(str, args...)
 	return b
@@ -131,19 +131,19 @@ func (b *Builder) Select(fields string) *Builder {
 	return b
 }
 
-//Limit
+// Limit
 func (b *Builder) Limit(i int) *Builder {
 	b.limit = strconv.Itoa(i)
 	return b
 }
 
-//Offset
+// Offset
 func (b *Builder) Offset(i int) *Builder {
 	b.offset = strconv.Itoa(i)
 	return b
 }
 
-//OrderBy for example "id desc"
+// OrderBy for example "id desc"
 func (b *Builder) OrderBy(str string) *Builder {
 	b.order = str
 	return b
@@ -166,23 +166,23 @@ func (b *Builder) Relation(fieldName string, fn BuilderChainFunc) *Builder {
 	return b
 }
 
-//All get data row from to Struct
+// All get data row from to Struct
 func (b *Builder) Get(zeroValues ...string) (err error) {
 	b.initModel()
 	m := zeroValueFilter(b.reflectModel(nil), zeroValues)
-	//If where is empty, the primary key where condition is generated automatically
+	// If where is empty, the primary key where condition is generated automatically
 	b.generateWhere(m)
 
 	return b.db.Get(b.model, b.queryString(), b.args...)
 }
 
-//All get data rows from to Struct
+// All get data rows from to Struct
 func (b *Builder) All() (err error) {
 	b.initModel()
 	return b.db.Select(b.model, b.queryString(), b.args...)
 }
 
-//Create data from to Struct
+// Create data from to Struct
 func (b *Builder) Create() (lastInsertId int64, err error) {
 	b.initModel()
 	hook := NewHook(b.db)
@@ -235,7 +235,7 @@ func (b *Builder) generateWhereForPK(m map[string]interface{}) {
 	}
 }
 
-//gosql.Model(&User{Id:1,Status:0}).Update("status")
+// gosql.Model(&User{Id:1,Status:0}).Update("status")
 func (b *Builder) Update(zeroValues ...string) (affected int64, err error) {
 	b.initModel()
 	hook := NewHook(b.db)
@@ -248,7 +248,7 @@ func (b *Builder) Update(zeroValues ...string) (affected int64, err error) {
 	fields := b.reflectModel(AUTO_UPDATE_TIME_FIELDS)
 	m := zeroValueFilter(fields, zeroValues)
 
-	//If where is empty, the primary key where condition is generated automatically
+	// If where is empty, the primary key where condition is generated automatically
 	b.generateWhereForPK(m)
 
 	result, err := b.db.Exec(b.updateString(m), b.args...)
@@ -266,7 +266,7 @@ func (b *Builder) Update(zeroValues ...string) (affected int64, err error) {
 	return result.RowsAffected()
 }
 
-//gosql.Model(&User{Id:1}).Delete()
+// gosql.Model(&User{Id:1}).Delete()
 func (b *Builder) Delete(zeroValues ...string) (affected int64, err error) {
 	b.initModel()
 	hook := NewHook(b.db)
@@ -277,7 +277,7 @@ func (b *Builder) Delete(zeroValues ...string) (affected int64, err error) {
 	}
 
 	m := zeroValueFilter(b.reflectModel(nil), zeroValues)
-	//If where is empty, the primary key where condition is generated automatically
+	// If where is empty, the primary key where condition is generated automatically
 	b.generateWhere(m)
 
 	result, err := b.db.Exec(b.deleteString(), b.args...)
@@ -295,12 +295,12 @@ func (b *Builder) Delete(zeroValues ...string) (affected int64, err error) {
 	return result.RowsAffected()
 }
 
-//gosql.Model(&User{}).Where("status = 0").Count()
+// gosql.Model(&User{}).Where("status = 0").Count()
 func (b *Builder) Count(zeroValues ...string) (num int64, err error) {
 	b.initModel()
 
 	m := zeroValueFilter(b.reflectModel(nil), zeroValues)
-	//If where is empty, the primary key where condition is generated automatically
+	// If where is empty, the primary key where condition is generated automatically
 	b.generateWhere(m)
 
 	err = b.db.Get(&num, b.countString(), b.args...)
