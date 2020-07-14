@@ -67,7 +67,7 @@ user := &Users{}
 err := gosql.Get(user,"select * from users where id = ?",1)
 
 //Select
-users := make([]*Users)
+users := make([]Users)
 err := gosql.Select(&users,"select * from users")
 
 //Change database
@@ -109,7 +109,7 @@ user := &Users{}
 gosql.Model(user).Where("id=?",1).Get()
 
 //All
-user := make([]*Users,0)
+user := make([]Users,0)
 gosql.Model(&user).All()
 
 //Create and auto set CreatedAt
@@ -319,7 +319,7 @@ rows, err := gosql.Queryx("SELECT * FROM users WHERE level IN (?);", levels)
 
 //or
 
-user := make([]*Users, 0)
+user := make([]Users, 0)
 err := gosql.Select(&user, "select * from users where id in(?)",[]int{1,2,3})
 ```
 
@@ -333,7 +333,7 @@ gosql used the golang structure to express the relationships between tables,You 
 type MomentList struct {
 	models.Moments
 	User   *models.Users    `json:"user" db:"-" relation:"user_id,id"`         //one-to-one
-	Photos []*models.Photos `json:"photos" db:"-" relation:"id,moment_id" connection:"db2"`     //one-to-many
+	Photos []models.Photos `json:"photos" db:"-" relation:"id,moment_id" connection:"db2"`     //one-to-many
 }
 ```
 
@@ -367,7 +367,7 @@ SQL:
 Get list result, many-to-many
 
 ```go
-var moments = make([]*MomentList, 0)
+var moments = make([]MomentList, 0)
 err := gosql.Model(&moments).Where("status = 1").Limit(10).All()
 //You get the total result  for *UserMoment slice
 ```
