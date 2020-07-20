@@ -208,7 +208,7 @@ func TestBuilder_Hint(t *testing.T) {
 		insert(2)
 
 		user := make([]*models.Users, 0)
-		err := Model(&user).Hint("/*+TDDL:slave()*/").All()
+		err := Model(&user).Hint("/*+TDDL:subordinate()*/").All()
 
 		if err != nil {
 			t.Error(err)

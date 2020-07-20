@@ -107,7 +107,7 @@ func (b *Builder) initModel() {
 	}
 }
 
-// Hint is set TDDL "/*+TDDL:slave()*/"
+// Hint is set TDDL "/*+TDDL:subordinate()*/"
 func (b *Builder) Hint(hint string) *Builder {
 	b.hint = hint
 	return b
