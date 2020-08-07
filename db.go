@@ -20,6 +20,7 @@ type ISqlx interface {
 	Get(dest interface{}, query string, args ...interface{}) error
 	Select(dest interface{}, query string, args ...interface{}) error
 	Exec(query string, args ...interface{}) (sql.Result, error)
+	Preparex(query string) (*sqlx.Stmt, error)
 	Rebind(query string) string
 	DriverName() string
 }
@@ -60,7 +61,7 @@ func (w *DB) argsIn(query string, args []interface{}) (string, []interface{}, er
 	return newQuery, newArgs, nil
 }
 
-//DriverName wrapper sqlx.DriverName
+// DriverName wrapper sqlx.DriverName
 func (w *DB) DriverName() string {
 	if w.tx != nil {
 		return w.tx.DriverName()
@@ -69,7 +70,12 @@ func (w *DB) DriverName() string {
 	return w.database.DriverName()
 }
 
-//Beginx begins a transaction and returns an *gosql.DB instead of an *sql.Tx.
+func (w *DB) ShowSql() *DB {
+	w.logging = true
+	return w
+}
+
+// Beginx begins a transaction and returns an *gosql.DB instead of an *sql.Tx.
 func (w *DB) Begin() (*DB, error) {
 	tx, err := w.database.Beginx()
 	if err != nil {
@@ -88,12 +94,17 @@ func (w *DB) Rollback() error {
 	return w.tx.Rollback()
 }
 
-//Rebind wrapper sqlx.Rebind
+// Rebind wrapper sqlx.Rebind
 func (w *DB) Rebind(query string) string {
 	return w.db().Rebind(query)
 }
 
-//Exec wrapper sqlx.Exec
+// Preparex wrapper sqlx.Preparex
+func (w *DB) Preparex(query string) (*sqlx.Stmt, error) {
+	return w.db().Preparex(query)
+}
+
+// Exec wrapper sqlx.Exec
 func (w *DB) Exec(query string, args ...interface{}) (result sql.Result, err error) {
 	defer func(start time.Time) {
 		logger.Log(&QueryStatus{
@@ -109,7 +120,7 @@ func (w *DB) Exec(query string, args ...interface{}) (result sql.Result, err err
 	return w.db().Exec(query, args...)
 }
 
-//Queryx wrapper sqlx.Queryx
+// Queryx wrapper sqlx.Queryx
 func (w *DB) Queryx(query string, args ...interface{}) (rows *sqlx.Rows, err error) {
 	defer func(start time.Time) {
 		logger.Log(&QueryStatus{
@@ -129,7 +140,7 @@ func (w *DB) Queryx(query string, args ...interface{}) (rows *sqlx.Rows, err err
 	return w.db().Queryx(query, newArgs...)
 }
 
-//QueryRowx wrapper sqlx.QueryRowx
+// QueryRowx wrapper sqlx.QueryRowx
 func (w *DB) QueryRowx(query string, args ...interface{}) (rows *sqlx.Row) {
 	defer func(start time.Time) {
 		logger.Log(&QueryStatus{
@@ -146,7 +157,7 @@ func (w *DB) QueryRowx(query string, args ...interface{}) (rows *sqlx.Row) {
 	return w.db().QueryRowx(query, newArgs...)
 }
 
-//Get wrapper sqlx.Get
+// Get wrapper sqlx.Get
 func (w *DB) Get(dest interface{}, query string, args ...interface{}) (err error) {
 	defer func(start time.Time) {
 		logger.Log(&QueryStatus{
@@ -196,7 +207,7 @@ func indirectType(v reflect.Type) reflect.Type {
 	return v.Elem()
 }
 
-//Select wrapper sqlx.Select
+// Select wrapper sqlx.Select
 func (w *DB) Select(dest interface{}, query string, args ...interface{}) (err error) {
 	defer func(start time.Time) {
 		logger.Log(&QueryStatus{
@@ -233,7 +244,7 @@ func (w *DB) Select(dest interface{}, query string, args ...interface{}) (err er
 	return nil
 }
 
-//Txx the transaction with context
+// Txx the transaction with context
 func (w *DB) Txx(ctx context.Context, fn func(ctx context.Context, tx *DB) error) (err error) {
 	tx, err := w.database.BeginTxx(ctx, nil)
 
@@ -256,7 +267,7 @@ func (w *DB) Txx(ctx context.Context, fn func(ctx context.Context, tx *DB) error
 	return
 }
 
-//Tx the transaction
+// Tx the transaction
 func (w *DB) Tx(fn func(w *DB) error) (err error) {
 	tx, err := w.database.Beginx()
 	if err != nil {
@@ -284,14 +295,14 @@ func (w *DB) Table(t string) *Mapper {
 	return &Mapper{db: w, SQLBuilder: SQLBuilder{table: t, dialect: newDialect(w.DriverName())}}
 }
 
-//Model database handler from to struct
-//for example:
+// Model database handler from to struct
+// for example:
 // gosql.Use("db2").Model(&users{})
 func (w *DB) Model(m interface{}) *Builder {
 	return &Builder{model: m, db: w, SQLBuilder: SQLBuilder{dialect: newDialect(w.DriverName())}}
 }
 
-//Import SQL DDL from sql file
+// Import SQL DDL from sql file
 func (w *DB) Import(f string) ([]sql.Result, error) {
 	file, err := os.Open(f)
 	if err != nil {
@@ -342,47 +353,47 @@ func (w *DB) Relation(name string, fn BuilderChainFunc) *DB {
 	return w
 }
 
-//Beginx begins a transaction for default database and returns an *gosql.DB instead of an *sql.Tx.
+// Beginx begins a transaction for default database and returns an *gosql.DB instead of an *sql.Tx.
 func Begin() (*DB, error) {
 	return Use(defaultLink).Begin()
 }
 
-//Use is change database
+// Use is change database
 func Use(db string) *DB {
 	return &DB{database: Sqlx(db)}
 }
 
-//Exec default database
+// Exec default database
 func Exec(query string, args ...interface{}) (sql.Result, error) {
 	return Use(defaultLink).Exec(query, args...)
 }
 
-//Queryx default database
+// Queryx default database
 func Queryx(query string, args ...interface{}) (*sqlx.Rows, error) {
 	return Use(defaultLink).Queryx(query, args...)
 }
 
-//QueryRowx default database
+// QueryRowx default database
 func QueryRowx(query string, args ...interface{}) *sqlx.Row {
 	return Use(defaultLink).QueryRowx(query, args...)
 }
 
-//Txx default database the transaction with context
+// Txx default database the transaction with context
 func Txx(ctx context.Context, fn func(ctx context.Context, tx *DB) error) error {
 	return Use(defaultLink).Txx(ctx, fn)
 }
 
-//Tx default database the transaction
+// Tx default database the transaction
 func Tx(fn func(tx *DB) error) error {
 	return Use(defaultLink).Tx(fn)
 }
 
-//Get default database
+// Get default database
 func Get(dest interface{}, query string, args ...interface{}) error {
 	return Use(defaultLink).Get(dest, query, args...)
 }
 
-//Select default database
+// Select default database
 func Select(dest interface{}, query string, args ...interface{}) error {
 	return Use(defaultLink).Select(dest, query, args...)
 }
