@@ -57,7 +57,9 @@ func (b *Builder) ShowSQL() *Builder {
 func (b *Builder) initModel() {
 	if m, ok := b.model.(IModel); ok {
 		b.modelEntity = m
-		b.table = m.TableName()
+		if b.table == "" {
+			b.table = m.TableName()
+		}
 		b.modelReflectValue = reflect.ValueOf(m)
 		b.dialect = newDialect(b.db.DriverName())
 	} else {
@@ -98,7 +100,9 @@ func (b *Builder) initModel() {
 
 		if m, ok := reflect.New(tpEl).Interface().(IModel); ok {
 			b.modelEntity = m
-			b.table = m.TableName()
+			if b.table == "" {
+				b.table = m.TableName()
+			}
 			b.modelReflectValue = reflect.ValueOf(m)
 			b.dialect = newDialect(b.db.DriverName())
 		} else {
@@ -305,4 +309,10 @@ func (b *Builder) Count(zeroValues ...string) (num int64, err error) {
 
 	err = b.db.Get(&num, b.countString(), b.args...)
 	return num, err
+}
+
+// gosql.Model(&users).Table("user_1").Where("status = 0").OrderBy("id DESC").All()
+func (b *Builder) Table(tableName string) *Builder {
+	b.table = tableName
+	return b
 }
