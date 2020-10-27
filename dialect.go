@@ -42,7 +42,6 @@ func mustGetDialect(name string) Dialect {
 		return dialect
 	}
 	panic(fmt.Sprintf("`%v` is not officially supported", name))
-	return nil
 }
 
 func newDialect(name string) Dialect {
