@@ -208,9 +208,13 @@ func TestUtil_structAutoTime(t *testing.T) {
 	if user.CreatedAt.IsZero() {
 		t.Error("auto time fail")
 	}
-	if user.CreatedTime == 0 {
+	if user.CreateAt == 0 {
 		t.Error("auto time fail")
 	}
+	if user.CreateTime == 0 {
+		t.Error("auto time fail")
+	}
+
 }
 
 func TestUtil_sortedParamKeys(t *testing.T) {
