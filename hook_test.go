@@ -105,7 +105,7 @@ func TestNewHook(t *testing.T) {
 }
 
 func TestHook_Err(t *testing.T) {
-	hook := NewHook(nil)
+	hook := NewHook(nil, nil)
 	hook.Err(errors.New("test"))
 	if hook.HasError() != 1 {
 		t.Error("hook err")
@@ -113,7 +113,7 @@ func TestHook_Err(t *testing.T) {
 }
 
 func TestHook_HasError(t *testing.T) {
-	hook := NewHook(nil)
+	hook := NewHook(nil, nil)
 	hook.Err(errors.New("test"))
 	hook.Err(errors.New("test"))
 	hook.Err(errors.New("test"))
@@ -125,7 +125,7 @@ func TestHook_HasError(t *testing.T) {
 }
 
 func TestHook_Error(t *testing.T) {
-	hook := NewHook(nil)
+	hook := NewHook(nil, nil)
 	hook.Err(errors.New("test"))
 	hook.Err(errors.New("test"))
 	hook.Err(errors.New("test"))
