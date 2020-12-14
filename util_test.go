@@ -198,6 +198,7 @@ func TestUtil_structAutoTime(t *testing.T) {
 			Name: "test",
 		},
 		0,
+		0,
 	}
 	rv := reflect.Indirect(reflect.ValueOf(user))
 	fields := mapper.FieldMap(rv)
