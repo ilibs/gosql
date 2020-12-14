@@ -14,16 +14,10 @@ type Hook struct {
 	ctx  context.Context
 }
 
-func NewCtxHook(ctx context.Context, db *DB) *Hook {
+func NewHook(ctx context.Context, db *DB) *Hook {
 	return &Hook{
 		db:  db,
 		ctx: ctx,
-	}
-}
-
-func NewHook(db *DB) *Hook {
-	return &Hook{
-		db: db,
 	}
 }
 

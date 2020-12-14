@@ -196,7 +196,7 @@ func (b *Builder) All() (err error) {
 // Create data from to Struct
 func (b *Builder) Create() (lastInsertId int64, err error) {
 	b.initModel()
-	hook := NewCtxHook(b.ctx, b.db)
+	hook := NewHook(b.ctx, b.db)
 	hook.callMethod("BeforeChange", b.modelReflectValue)
 	hook.callMethod("BeforeCreate", b.modelReflectValue)
 	if hook.HasError() > 0 {
@@ -249,7 +249,7 @@ func (b *Builder) generateWhereForPK(m map[string]interface{}) {
 // gosql.Model(&User{Id:1,Status:0}).Update("status")
 func (b *Builder) Update(zeroValues ...string) (affected int64, err error) {
 	b.initModel()
-	hook := NewCtxHook(b.ctx, b.db)
+	hook := NewHook(b.ctx, b.db)
 	hook.callMethod("BeforeChange", b.modelReflectValue)
 	hook.callMethod("BeforeUpdate", b.modelReflectValue)
 	if hook.HasError() > 0 {
@@ -280,7 +280,7 @@ func (b *Builder) Update(zeroValues ...string) (affected int64, err error) {
 // gosql.Model(&User{Id:1}).Delete()
 func (b *Builder) Delete(zeroValues ...string) (affected int64, err error) {
 	b.initModel()
-	hook := NewCtxHook(b.ctx, b.db)
+	hook := NewHook(b.ctx, b.db)
 	hook.callMethod("BeforeChange", b.modelReflectValue)
 	hook.callMethod("BeforeDelete", b.modelReflectValue)
 	if hook.HasError() > 0 {

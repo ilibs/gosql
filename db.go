@@ -172,7 +172,7 @@ func (w *DB) CtxGet(ctx context.Context, dest interface{}, query string, args ..
 		}, w.logging)
 	}(time.Now())
 
-	hook := NewCtxHook(ctx, w)
+	hook := NewHook(ctx, w)
 	refVal := reflect.ValueOf(dest)
 	hook.callMethod("BeforeFind", refVal)
 
