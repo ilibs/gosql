@@ -163,6 +163,23 @@ func TestGet(t *testing.T) {
 	})
 }
 
+func TestCtxGet(t *testing.T) {
+	RunWithSchema(t, func(t *testing.T) {
+		insert(1)
+		db := Use("default")
+		{
+			user := &models.Users{}
+			err := db.CtxGet(nil, user, "select * from users where id = ?", 1)
+
+			if err != nil {
+				t.Error(err)
+			}
+
+			fmt.Println(jsonEncode(user))
+		}
+	})
+}
+
 func TestGetSingle(t *testing.T) {
 	RunWithSchema(t, func(t *testing.T) {
 		insert(1)

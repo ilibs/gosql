@@ -187,7 +187,8 @@ func TestUtil_zeroValueFilter(t *testing.T) {
 
 type testWithIntCreatedTime struct {
 	models.Users
-	CreatedTime int `db:"create_time"`
+	CreatedTime int  `db:"created_time"`
+	CreateTime  uint `db:"create_time"`
 }
 
 func TestUtil_structAutoTime(t *testing.T) {

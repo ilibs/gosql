@@ -36,7 +36,7 @@ func (u *hookUser) AfterUpdate() error {
 		Id: 999,
 	}
 
-	err := Model(user).Get()
+	err := CtxModel(nil, user).Get()
 	return err
 }
 
@@ -61,7 +61,7 @@ func TestNewHook(t *testing.T) {
 				Name:   "test",
 				Status: 1,
 			}}
-			_, err := Model(user).Create()
+			_, err := CtxModel(nil, user).Create()
 			if err == nil {
 				t.Error("before create must error")
 			}
