@@ -419,16 +419,16 @@ AfterChange
 Example:
 
 ```go
-func (u *Users) BeforeCreate() (err error) {
+func (u *Users) BeforeCreate(ctx context.Context) (err error) {
   if u.IsValid() {
     err = errors.New("can't save invalid data")
   }
   return
 }
 
-func (u *Users) AfterCreate(tx *gosql.DB) (err error) {
+func (u *Users) AfterCreate(ctx context.Context, tx *gosql.DB) (err error) {
   if u.Id == 1 {
-    u.Email = "after@test.com"
+    u.Email = ctx.Value("email")
     tx.Model(u).Update()
   }
   return
@@ -459,7 +459,19 @@ func (u *Users) BeforeCreate()
 func (u *Users) BeforeCreate() (err error)
 func (u *Users) BeforeCreate(tx *gosql.DB)
 func (u *Users) BeforeCreate(tx *gosql.DB) (err error)
+func (u *Users) BeforeCreate(ctx context.Context)
+func (u *Users) BeforeCreate(ctx context.Context) (err error)
+func (u *Users) BeforeCreate(ctx context.Context, tx *rsql.DB)
+func (u *Users) BeforeCreate(ctx context.Context, tx *rsql.DB) (err error)
+
 ```
+
+ If you want to use `context` feature, you need to use below function while start a sql, or the context in callback will be nil:
+
+1. gosql.CtxModel(ctx, ...)
+1. gosql.Use("xxx").CtxModel(ctx, ...)
+2. gosql.Get(ctx, ...)
+2. gosql.Use("xxx").Get(ctx, ...)
 
 
 ## Thanks

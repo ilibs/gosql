@@ -1,6 +1,7 @@
 package gosql
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"reflect"
@@ -37,6 +38,7 @@ type Builder struct {
 	modelReflectValue reflect.Value
 	modelEntity       IModel
 	db                *DB
+	ctx               context.Context
 	SQLBuilder
 }
 
@@ -45,6 +47,15 @@ func Model(model interface{}) *Builder {
 	return &Builder{
 		model: model,
 		db:    &DB{database: Sqlx(defaultLink)},
+	}
+}
+
+// Model construct SQL from Struct with context
+func CtxModel(ctx context.Context, model interface{}) *Builder {
+	return &Builder{
+		model: model,
+		db:    &DB{database: Sqlx(defaultLink)},
+		ctx:   ctx,
 	}
 }
 
@@ -185,7 +196,7 @@ func (b *Builder) All() (err error) {
 // Create data from to Struct
 func (b *Builder) Create() (lastInsertId int64, err error) {
 	b.initModel()
-	hook := NewHook(b.db)
+	hook := NewCtxHook(b.ctx, b.db)
 	hook.callMethod("BeforeChange", b.modelReflectValue)
 	hook.callMethod("BeforeCreate", b.modelReflectValue)
 	if hook.HasError() > 0 {
@@ -238,7 +249,7 @@ func (b *Builder) generateWhereForPK(m map[string]interface{}) {
 // gosql.Model(&User{Id:1,Status:0}).Update("status")
 func (b *Builder) Update(zeroValues ...string) (affected int64, err error) {
 	b.initModel()
-	hook := NewHook(b.db)
+	hook := NewCtxHook(b.ctx, b.db)
 	hook.callMethod("BeforeChange", b.modelReflectValue)
 	hook.callMethod("BeforeUpdate", b.modelReflectValue)
 	if hook.HasError() > 0 {
@@ -269,7 +280,7 @@ func (b *Builder) Update(zeroValues ...string) (affected int64, err error) {
 // gosql.Model(&User{Id:1}).Delete()
 func (b *Builder) Delete(zeroValues ...string) (affected int64, err error) {
 	b.initModel()
-	hook := NewHook(b.db)
+	hook := NewCtxHook(b.ctx, b.db)
 	hook.callMethod("BeforeChange", b.modelReflectValue)
 	hook.callMethod("BeforeDelete", b.modelReflectValue)
 	if hook.HasError() > 0 {

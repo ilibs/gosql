@@ -85,6 +85,10 @@ func structAutoTime(fields map[string]reflect.Value, f []string) {
 			case reflect.Struct:
 				// truncate 1 sec, Otherwise the data you create and the data you get will never be compared
 				v.Set(reflect.ValueOf(time.Now().Truncate(1 * time.Second)))
+			case reflect.Int, reflect.Int32, reflect.Int64:
+				v.SetInt(time.Now().Unix())
+			case reflect.Uint, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+				v.SetUint(uint64(time.Now().Unix()))
 			}
 		}
 	}

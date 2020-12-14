@@ -1,6 +1,7 @@
 package gosql
 
 import (
+	"context"
 	"errors"
 	"log"
 	"reflect"
@@ -10,6 +11,14 @@ import (
 type Hook struct {
 	db   *DB
 	Errs []error
+	ctx  context.Context
+}
+
+func NewCtxHook(ctx context.Context, db *DB) *Hook {
+	return &Hook{
+		db:  db,
+		ctx: ctx,
+	}
 }
 
 func NewHook(db *DB) *Hook {
@@ -34,6 +43,14 @@ func (h *Hook) callMethod(methodName string, reflectValue reflect.Value) {
 			method(h.db)
 		case func(db *DB) error:
 			h.Err(method(h.db))
+		case func(ctx context.Context):
+			method(h.ctx)
+		case func(ctx context.Context) error:
+			h.Err(method(h.ctx))
+		case func(ctx context.Context, db *DB):
+			method(h.ctx, h.db)
+		case func(ctx context.Context, db *DB) error:
+			h.Err(method(h.ctx, h.db))
 		default:
 			log.Panicf("unsupported function %v", methodName)
 		}
