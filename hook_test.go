@@ -165,7 +165,7 @@ func (m *testModelCallBack) AfterUpdate(ctx context.Context) error {
 func (m *testModelCallBack) BeforeDelete(ctx context.Context, tx *DB) {
 }
 
-func (m *testModelCallBack) AfterChange(ctx context.Context, tx *DB) error {
+func (m *testModelCallBack) AfterDelete(ctx context.Context, tx *DB) error {
 	return nil
 }
 
