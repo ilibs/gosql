@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"reflect"
 	"strings"
 	"testing"
 
@@ -172,7 +173,9 @@ func TestHook_callMethod(t *testing.T) {
 
 	hook := NewHook(nil, nil)
 
-	refVal := reflect.ValueOf(&testModelCallBack{})
+	m := &testModelCallBack{}
+
+	refVal := reflect.ValueOf(m)
 	hook.callMethod("BeforeCreate", refVal)
 	hook.callMethod("BeforeChange", refVal)
 	hook.callMethod("BeforeDelete", refVal)
