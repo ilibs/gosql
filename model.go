@@ -58,6 +58,7 @@ func (b *Builder) Model(model interface{}) *Builder {
 
 // Model construct SQL from Struct with context
 func WithContext(ctx context.Context) *Builder {
+	w := Use(defaultLink)
 	return &Builder{db: w, SQLBuilder: SQLBuilder{dialect: newDialect(w.DriverName())}, ctx: ctx}
 }
 
