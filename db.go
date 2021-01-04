@@ -169,7 +169,7 @@ func (w *DB) Get(dest interface{}, query string, args ...interface{}) (err error
 		}, w.logging)
 	}(time.Now())
 
-	hook := NewHook(w)
+	hook := NewHook(nil, w)
 	refVal := reflect.ValueOf(dest)
 	hook.callMethod("BeforeFind", refVal)
 
@@ -300,6 +300,13 @@ func (w *DB) Table(t string) *Mapper {
 // gosql.Use("db2").Model(&users{})
 func (w *DB) Model(m interface{}) *Builder {
 	return &Builder{model: m, db: w, SQLBuilder: SQLBuilder{dialect: newDialect(w.DriverName())}}
+}
+
+// Model database handler from to struct with context
+// for example:
+// gosql.Use("db2").WithContext(ctx).Model(&users{})
+func (w *DB) WithContext(ctx context.Context) *Builder {
+	return &Builder{db: w, SQLBuilder: SQLBuilder{dialect: newDialect(w.DriverName())}, ctx: ctx}
 }
 
 // Import SQL DDL from sql file

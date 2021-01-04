@@ -136,6 +136,12 @@ func TestUseTable(t *testing.T) {
 			t.Error(err)
 		}
 
+		post.Url = "http://test.com/2"
+		_, err = Use("db2").WithContext(context.Background()).Model(post).Update()
+		if err != nil {
+			t.Error(err)
+		}
+
 		_, err = Use("db2").Table("photos").Where("id = ?", 1).Update(map[string]interface{}{
 			"url": "http://test2.com",
 		})

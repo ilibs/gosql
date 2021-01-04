@@ -185,10 +185,20 @@ func TestUtil_zeroValueFilter(t *testing.T) {
 	}
 }
 
+type testWithIntCreatedTime struct {
+	models.Users
+	CreateAt   int  `db:"create_at"`
+	CreateTime uint `db:"create_time"`
+}
+
 func TestUtil_structAutoTime(t *testing.T) {
-	user := &models.Users{
-		Id:   1,
-		Name: "test",
+	user := &testWithIntCreatedTime{
+		models.Users{
+			Id:   1,
+			Name: "test",
+		},
+		0,
+		0,
 	}
 	rv := reflect.Indirect(reflect.ValueOf(user))
 	fields := mapper.FieldMap(rv)
@@ -198,6 +208,13 @@ func TestUtil_structAutoTime(t *testing.T) {
 	if user.CreatedAt.IsZero() {
 		t.Error("auto time fail")
 	}
+	if user.CreateAt == 0 {
+		t.Error("auto time fail")
+	}
+	if user.CreateTime == 0 {
+		t.Error("auto time fail")
+	}
+
 }
 
 func TestUtil_sortedParamKeys(t *testing.T) {

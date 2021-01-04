@@ -1,6 +1,7 @@
 package gosql
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"reflect"
@@ -37,6 +38,7 @@ type Builder struct {
 	modelReflectValue reflect.Value
 	modelEntity       IModel
 	db                *DB
+	ctx               context.Context
 	SQLBuilder
 }
 
@@ -48,6 +50,18 @@ func Model(model interface{}) *Builder {
 	}
 }
 
+// Model construct SQL from Struct with context
+func (b *Builder) Model(model interface{}) *Builder {
+	b.model = model
+	return b
+}
+
+// Model construct SQL from Struct with context
+func WithContext(ctx context.Context) *Builder {
+	w := Use(defaultLink)
+	return &Builder{db: w, SQLBuilder: SQLBuilder{dialect: newDialect(w.DriverName())}, ctx: ctx}
+}
+
 // ShowSQL output single sql
 func (b *Builder) ShowSQL() *Builder {
 	b.db.logging = true
@@ -55,7 +69,9 @@ func (b *Builder) ShowSQL() *Builder {
 }
 
 func (b *Builder) initModel() {
-	if m, ok := b.model.(IModel); ok {
+	if b.model == nil {
+		log.Panicf("model argument must not nil")
+	} else if m, ok := b.model.(IModel); ok {
 		b.modelEntity = m
 		b.table = m.TableName()
 		b.modelReflectValue = reflect.ValueOf(m)
@@ -185,7 +201,7 @@ func (b *Builder) All() (err error) {
 // Create data from to Struct
 func (b *Builder) Create() (lastInsertId int64, err error) {
 	b.initModel()
-	hook := NewHook(b.db)
+	hook := NewHook(b.ctx, b.db)
 	hook.callMethod("BeforeChange", b.modelReflectValue)
 	hook.callMethod("BeforeCreate", b.modelReflectValue)
 	if hook.HasError() > 0 {
@@ -238,7 +254,7 @@ func (b *Builder) generateWhereForPK(m map[string]interface{}) {
 // gosql.Model(&User{Id:1,Status:0}).Update("status")
 func (b *Builder) Update(zeroValues ...string) (affected int64, err error) {
 	b.initModel()
-	hook := NewHook(b.db)
+	hook := NewHook(b.ctx, b.db)
 	hook.callMethod("BeforeChange", b.modelReflectValue)
 	hook.callMethod("BeforeUpdate", b.modelReflectValue)
 	if hook.HasError() > 0 {
@@ -269,7 +285,7 @@ func (b *Builder) Update(zeroValues ...string) (affected int64, err error) {
 // gosql.Model(&User{Id:1}).Delete()
 func (b *Builder) Delete(zeroValues ...string) (affected int64, err error) {
 	b.initModel()
-	hook := NewHook(b.db)
+	hook := NewHook(b.ctx, b.db)
 	hook.callMethod("BeforeChange", b.modelReflectValue)
 	hook.callMethod("BeforeDelete", b.modelReflectValue)
 	if hook.HasError() > 0 {

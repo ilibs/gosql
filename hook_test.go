@@ -1,8 +1,10 @@
 package gosql
 
 import (
+	"context"
 	"errors"
 	"fmt"
+	"reflect"
 	"strings"
 	"testing"
 
@@ -36,7 +38,7 @@ func (u *hookUser) AfterUpdate() error {
 		Id: 999,
 	}
 
-	err := Model(user).Get()
+	err := WithContext(nil).Model(user).Get()
 	return err
 }
 
@@ -61,7 +63,7 @@ func TestNewHook(t *testing.T) {
 				Name:   "test",
 				Status: 1,
 			}}
-			_, err := Model(user).Create()
+			_, err := WithContext(nil).Model(user).Create()
 			if err == nil {
 				t.Error("before create must error")
 			}
@@ -105,7 +107,7 @@ func TestNewHook(t *testing.T) {
 }
 
 func TestHook_Err(t *testing.T) {
-	hook := NewHook(nil)
+	hook := NewHook(nil, nil)
 	hook.Err(errors.New("test"))
 	if hook.HasError() != 1 {
 		t.Error("hook err")
@@ -113,7 +115,7 @@ func TestHook_Err(t *testing.T) {
 }
 
 func TestHook_HasError(t *testing.T) {
-	hook := NewHook(nil)
+	hook := NewHook(nil, nil)
 	hook.Err(errors.New("test"))
 	hook.Err(errors.New("test"))
 	hook.Err(errors.New("test"))
@@ -125,7 +127,7 @@ func TestHook_HasError(t *testing.T) {
 }
 
 func TestHook_Error(t *testing.T) {
-	hook := NewHook(nil)
+	hook := NewHook(nil, nil)
 	hook.Err(errors.New("test"))
 	hook.Err(errors.New("test"))
 	hook.Err(errors.New("test"))
@@ -134,4 +136,52 @@ func TestHook_Error(t *testing.T) {
 	if strings.Count(hook.Error().Error(), "test") != 5 {
 		t.Error("get error err")
 	}
+}
+
+type testModelCallBack struct {
+}
+
+func (m *testModelCallBack) BeforeCreate() {
+}
+
+func (m *testModelCallBack) AfterCreate() error {
+	return nil
+}
+
+func (m *testModelCallBack) BeforeChange(tx *DB) {
+}
+
+func (m *testModelCallBack) AfterChange(tx *DB) error {
+	return nil
+}
+
+func (m *testModelCallBack) BeforeUpdate(ctx context.Context) {
+}
+
+func (m *testModelCallBack) AfterUpdate(ctx context.Context) error {
+	return nil
+}
+
+func (m *testModelCallBack) BeforeDelete(ctx context.Context, tx *DB) {
+}
+
+func (m *testModelCallBack) AfterDelete(ctx context.Context, tx *DB) error {
+	return nil
+}
+
+func TestHook_callMethod(t *testing.T) {
+
+	hook := NewHook(nil, nil)
+
+	m := &testModelCallBack{}
+
+	refVal := reflect.ValueOf(m)
+	hook.callMethod("BeforeCreate", refVal)
+	hook.callMethod("BeforeChange", refVal)
+	hook.callMethod("BeforeDelete", refVal)
+	hook.callMethod("BeforeUpdate", refVal)
+	hook.callMethod("AfterCreate", refVal)
+	hook.callMethod("AfterChange", refVal)
+	hook.callMethod("AfterDelete", refVal)
+	hook.callMethod("AfterUpdate", refVal)
 }
