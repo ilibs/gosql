@@ -159,9 +159,6 @@ func (w *DB) QueryRowx(query string, args ...interface{}) (rows *sqlx.Row) {
 
 // Get wrapper sqlx.Get
 func (w *DB) Get(dest interface{}, query string, args ...interface{}) (err error) {
-	return w.CtxGet(nil, dest, query, args...)
-}
-func (w *DB) CtxGet(ctx context.Context, dest interface{}, query string, args ...interface{}) (err error) {
 	defer func(start time.Time) {
 		logger.Log(&QueryStatus{
 			Query: query,
@@ -172,7 +169,7 @@ func (w *DB) CtxGet(ctx context.Context, dest interface{}, query string, args ..
 		}, w.logging)
 	}(time.Now())
 
-	hook := NewHook(ctx, w)
+	hook := NewHook(nil, w)
 	refVal := reflect.ValueOf(dest)
 	hook.callMethod("BeforeFind", refVal)
 
@@ -307,9 +304,9 @@ func (w *DB) Model(m interface{}) *Builder {
 
 // Model database handler from to struct with context
 // for example:
-// gosql.Use("db2").CtxModel(r.Context(), &users{})
-func (w *DB) CtxModel(ctx context.Context, m interface{}) *Builder {
-	return &Builder{model: m, db: w, SQLBuilder: SQLBuilder{dialect: newDialect(w.DriverName())}, ctx: ctx}
+// gosql.Use("db2").WithContext(ctx).Model(&users{})
+func (w *DB) WithContext(ctx context.Context) *Builder {
+	return &Builder{db: w, SQLBuilder: SQLBuilder{dialect: newDialect(w.DriverName())}, ctx: ctx}
 }
 
 // Import SQL DDL from sql file

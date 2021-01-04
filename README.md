@@ -468,10 +468,8 @@ func (u *Users) BeforeCreate(ctx context.Context, tx *rsql.DB) (err error)
 
  If you want to use `context` feature, you need to use below function while start a sql, or the context in callback will be nil:
 
-1. gosql.CtxModel(ctx, ...)
-1. gosql.Use("xxx").CtxModel(ctx, ...)
-2. gosql.Get(ctx, ...)
-2. gosql.Use("xxx").Get(ctx, ...)
+1. ` gosql.WithContext(ctx).Model(...)`
+1. ` gosql.Use("xxx").WithContext(ctx).Model(...)`
 
 
 ## Thanks

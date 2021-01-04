@@ -137,7 +137,7 @@ func TestUseTable(t *testing.T) {
 		}
 
 		post.Url = "http://test.com/2"
-		_, err = Use("db2").CtxModel(nil, post).Update()
+		_, err = Use("db2").WithContext(context.Background()).Model(post).Update()
 		if err != nil {
 			t.Error(err)
 		}
@@ -159,23 +159,6 @@ func TestGet(t *testing.T) {
 		{
 			user := &models.Users{}
 			err := db.Get(user, "select * from users where id = ?", 1)
-
-			if err != nil {
-				t.Error(err)
-			}
-
-			fmt.Println(jsonEncode(user))
-		}
-	})
-}
-
-func TestCtxGet(t *testing.T) {
-	RunWithSchema(t, func(t *testing.T) {
-		insert(1)
-		db := Use("default")
-		{
-			user := &models.Users{}
-			err := db.CtxGet(nil, user, "select * from users where id = ?", 1)
 
 			if err != nil {
 				t.Error(err)

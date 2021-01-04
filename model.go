@@ -51,12 +51,14 @@ func Model(model interface{}) *Builder {
 }
 
 // Model construct SQL from Struct with context
-func CtxModel(ctx context.Context, model interface{}) *Builder {
-	return &Builder{
-		model: model,
-		db:    &DB{database: Sqlx(defaultLink)},
-		ctx:   ctx,
-	}
+func (b *Builder) Model(model interface{}) *Builder {
+	b.model = model
+	return b
+}
+
+// Model construct SQL from Struct with context
+func WithContext(ctx context.Context) *Builder {
+	return &Builder{db: w, SQLBuilder: SQLBuilder{dialect: newDialect(w.DriverName())}, ctx: ctx}
 }
 
 // ShowSQL output single sql
@@ -66,7 +68,9 @@ func (b *Builder) ShowSQL() *Builder {
 }
 
 func (b *Builder) initModel() {
-	if m, ok := b.model.(IModel); ok {
+	if b.model == nil {
+		log.Panicf("model argument must not nil")
+	} else if m, ok := b.model.(IModel); ok {
 		b.modelEntity = m
 		b.table = m.TableName()
 		b.modelReflectValue = reflect.ValueOf(m)
