@@ -1,6 +1,6 @@
 module github.com/ilibs/gosql/v2
 
-go 1.10
+go 1.11
 
 require (
 	github.com/go-sql-driver/mysql v1.5.0
