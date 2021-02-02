@@ -193,7 +193,7 @@ func (w *DB) Get(dest interface{}, query string, args ...interface{}) (err error
 	}
 
 	hook.callMethod("AfterFind", refVal)
-	if hook.HasError() > 0 {
+	if hook.HasError() {
 		return hook.Error()
 	}
 

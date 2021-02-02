@@ -204,7 +204,7 @@ func (b *Builder) Create() (lastInsertId int64, err error) {
 	hook := NewHook(b.ctx, b.db)
 	hook.callMethod("BeforeChange", b.modelReflectValue)
 	hook.callMethod("BeforeCreate", b.modelReflectValue)
-	if hook.HasError() > 0 {
+	if hook.HasError() {
 		return 0, hook.Error()
 	}
 
@@ -219,7 +219,7 @@ func (b *Builder) Create() (lastInsertId int64, err error) {
 	hook.callMethod("AfterCreate", b.modelReflectValue)
 	hook.callMethod("AfterChange", b.modelReflectValue)
 
-	if hook.HasError() > 0 {
+	if hook.HasError() {
 		return 0, hook.Error()
 	}
 
@@ -257,7 +257,7 @@ func (b *Builder) Update(zeroValues ...string) (affected int64, err error) {
 	hook := NewHook(b.ctx, b.db)
 	hook.callMethod("BeforeChange", b.modelReflectValue)
 	hook.callMethod("BeforeUpdate", b.modelReflectValue)
-	if hook.HasError() > 0 {
+	if hook.HasError() {
 		return 0, hook.Error()
 	}
 
@@ -275,7 +275,7 @@ func (b *Builder) Update(zeroValues ...string) (affected int64, err error) {
 	hook.callMethod("AfterUpdate", b.modelReflectValue)
 	hook.callMethod("AfterChange", b.modelReflectValue)
 
-	if hook.HasError() > 0 {
+	if hook.HasError() {
 		return 0, hook.Error()
 	}
 
@@ -288,7 +288,7 @@ func (b *Builder) Delete(zeroValues ...string) (affected int64, err error) {
 	hook := NewHook(b.ctx, b.db)
 	hook.callMethod("BeforeChange", b.modelReflectValue)
 	hook.callMethod("BeforeDelete", b.modelReflectValue)
-	if hook.HasError() > 0 {
+	if hook.HasError() {
 		return 0, hook.Error()
 	}
 
@@ -304,7 +304,7 @@ func (b *Builder) Delete(zeroValues ...string) (affected int64, err error) {
 	hook.callMethod("AfterDelete", b.modelReflectValue)
 	hook.callMethod("AfterChange", b.modelReflectValue)
 
-	if hook.HasError() > 0 {
+	if hook.HasError() {
 		return 0, hook.Error()
 	}
 

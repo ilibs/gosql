@@ -52,16 +52,15 @@ func (h *Hook) callMethod(methodName string, reflectValue reflect.Value) {
 }
 
 // Err add error
-func (h *Hook) Err(err error) error {
+func (h *Hook) Err(err error) {
 	if err != nil {
 		h.Errs = append(h.Errs, err)
 	}
-	return err
 }
 
 // HasError has errors
-func (h *Hook) HasError() int {
-	return len(h.Errs)
+func (h *Hook) HasError() bool {
+	return len(h.Errs) > 0
 }
 
 // Error format happened errors
