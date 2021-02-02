@@ -40,7 +40,7 @@ func (s *SQLBuilder) orderFormat() string {
 	return ""
 }
 
-//queryString Assemble the query statement
+// queryString Assemble the query statement
 func (s *SQLBuilder) queryString() string {
 	if s.fields == "" {
 		s.fields = "*"
@@ -58,7 +58,7 @@ func (s *SQLBuilder) queryString() string {
 	return query
 }
 
-//countString Assemble the count statement
+// countString Assemble the count statement
 func (s *SQLBuilder) countString() string {
 	query := fmt.Sprintf("%sSELECT count(*) FROM %s %s", s.hint, s.dialect.Quote(s.table), s.where)
 	query = strings.TrimRight(query, " ")
@@ -67,7 +67,7 @@ func (s *SQLBuilder) countString() string {
 	return query
 }
 
-//insertString Assemble the insert statement
+// insertString Assemble the insert statement
 func (s *SQLBuilder) insertString(params map[string]interface{}) string {
 	var cols, vals []string
 	for _, k := range sortedParamKeys(params) {
@@ -79,7 +79,7 @@ func (s *SQLBuilder) insertString(params map[string]interface{}) string {
 	return fmt.Sprintf("INSERT INTO %s (%s) VALUES(%s);", s.dialect.Quote(s.table), strings.Join(cols, ","), strings.Join(vals, ","))
 }
 
-//updateString Assemble the update statement
+// updateString Assemble the update statement
 func (s *SQLBuilder) updateString(params map[string]interface{}) string {
 	var updateFields []string
 	args := make([]interface{}, 0)
@@ -102,7 +102,7 @@ func (s *SQLBuilder) updateString(params map[string]interface{}) string {
 	return query
 }
 
-//deleteString Assemble the delete statement
+// deleteString Assemble the delete statement
 func (s *SQLBuilder) deleteString() string {
 	query := fmt.Sprintf("DELETE FROM %s %s", s.dialect.Quote(s.table), s.where)
 	query = strings.TrimRight(query, " ")

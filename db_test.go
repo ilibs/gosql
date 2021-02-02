@@ -56,6 +56,50 @@ func TestExec(t *testing.T) {
 	})
 }
 
+func TestBatchExec(t *testing.T) {
+	RunWithSchema(t, func(t *testing.T) {
+		{
+			// batch insert with structs
+			users := []models.Users{
+				{Name: "test1", Status: 1, CreatedAt: time.Now(), UpdatedAt: time.Now()},
+				{Name: "test2", Status: 1, CreatedAt: time.Now(), UpdatedAt: time.Now()},
+				{Name: "test3", Status: 1, CreatedAt: time.Now(), UpdatedAt: time.Now()},
+				{Name: "test4", Status: 1, CreatedAt: time.Now(), UpdatedAt: time.Now()},
+			}
+
+			result, err := NamedExec("insert into users(name,status,created_at,updated_at) value(:name,:status,:created_at,:updated_at)", users)
+
+			if err != nil {
+				t.Error(err)
+			}
+
+			if aff, _ := result.RowsAffected(); aff != 4 {
+				t.Error("update set error")
+			}
+		}
+
+		{
+			// batch insert with maps
+			users := []map[string]interface{}{
+				{"name": "test5", "status": 1, "created_at": "2021-01-25 12:22:22", "updated_at": "2021-01-25 12:22:22"},
+				{"name": "test6", "status": 1, "created_at": "2021-01-25 12:22:22", "updated_at": "2021-01-25 12:22:22"},
+				{"name": "test7", "status": 1, "created_at": "2021-01-25 12:22:22", "updated_at": "2021-01-25 12:22:22"},
+				{"name": "test8", "status": 1, "created_at": "2021-01-25 12:22:22", "updated_at": "2021-01-25 12:22:22"},
+			}
+
+			result, err := NamedExec("insert into users(name,status,created_at,updated_at) value(:name,:status,:created_at,:updated_at)", users)
+
+			if err != nil {
+				t.Error(err)
+			}
+
+			if aff, _ := result.RowsAffected(); aff != 4 {
+				t.Error("update set error")
+			}
+		}
+	})
+}
+
 func TestQueryx(t *testing.T) {
 	RunWithSchema(t, func(t *testing.T) {
 		insert(1)

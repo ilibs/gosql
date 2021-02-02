@@ -9,6 +9,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/jmoiron/sqlx"
+
 	"github.com/ilibs/gosql/v2/internal/example/models"
 )
 
@@ -93,30 +95,30 @@ VALUES
 )
 
 func RunWithSchema(t *testing.T, test func(t *testing.T)) {
-	db := Sqlx()
-	db2 := Sqlx("db2")
+	var dbs = []*sqlx.DB{
+		Sqlx(),
+		Sqlx("db2"),
+	}
 	defer func() {
-		for k := range createSchemas {
+		// for k := range createSchemas {
+		// 	_, err := db.Exec(fmt.Sprintf("DROP TABLE IF EXISTS `%s`", k))
+		// 	if err != nil {
+		// 		t.Error(err)
+		// 	}
+		// }
+	}()
+
+	for _, db := range dbs {
+		for k, v := range createSchemas {
 			_, err := db.Exec(fmt.Sprintf("DROP TABLE IF EXISTS `%s`", k))
 			if err != nil {
 				t.Error(err)
 			}
-		}
-	}()
 
-	for k, v := range createSchemas {
-		udb := db
-		if k == "photos" {
-			udb = db2
-		}
-		_, err := udb.Exec(fmt.Sprintf("DROP TABLE IF EXISTS `%s`", k))
-		if err != nil {
-			t.Error(err)
-		}
-
-		_, err = udb.Exec(v)
-		if err != nil {
-			t.Fatalf("create schema %s error:%s", k, err)
+			_, err = db.Exec(v)
+			if err != nil {
+				t.Fatalf("create schema %s error:%s", k, err)
+			}
 		}
 	}
 

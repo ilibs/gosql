@@ -40,6 +40,7 @@ type Builder struct {
 	db                *DB
 	ctx               context.Context
 	SQLBuilder
+	modelWrapper *ModelWrapper
 }
 
 // Model construct SQL from Struct
@@ -189,12 +190,19 @@ func (b *Builder) Get(zeroValues ...string) (err error) {
 	// If where is empty, the primary key where condition is generated automatically
 	b.generateWhere(m)
 
+	if b.modelWrapper != nil {
+		return b.db.Get(b.modelWrapper, b.queryString(), b.args...)
+	}
 	return b.db.Get(b.model, b.queryString(), b.args...)
 }
 
 // All get data rows from to Struct
 func (b *Builder) All() (err error) {
 	b.initModel()
+
+	if b.modelWrapper != nil {
+		return b.db.Select(b.modelWrapper, b.queryString(), b.args...)
+	}
 	return b.db.Select(b.model, b.queryString(), b.args...)
 }
 

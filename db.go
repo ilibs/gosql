@@ -20,6 +20,7 @@ type ISqlx interface {
 	Get(dest interface{}, query string, args ...interface{}) error
 	Select(dest interface{}, query string, args ...interface{}) error
 	Exec(query string, args ...interface{}) (sql.Result, error)
+	NamedExec(query string, arg interface{}) (sql.Result, error)
 	Preparex(query string) (*sqlx.Stmt, error)
 	Rebind(query string) string
 	DriverName() string
@@ -120,6 +121,22 @@ func (w *DB) Exec(query string, args ...interface{}) (result sql.Result, err err
 	return w.db().Exec(query, args...)
 }
 
+// NamedExec wrapper sqlx.Exec
+func (w *DB) NamedExec(query string, args interface{}) (result sql.Result, err error) {
+	defer func(start time.Time) {
+		logger.Log(&QueryStatus{
+			Query: query,
+			Args:  args,
+			Err:   err,
+			Start: start,
+			End:   time.Now(),
+		}, w.logging)
+
+	}(time.Now())
+
+	return w.db().NamedExec(query, args)
+}
+
 // Queryx wrapper sqlx.Queryx
 func (w *DB) Queryx(query string, args ...interface{}) (rows *sqlx.Rows, err error) {
 	defer func(start time.Time) {
@@ -169,6 +186,11 @@ func (w *DB) Get(dest interface{}, query string, args ...interface{}) (err error
 		}, w.logging)
 	}(time.Now())
 
+	wrapper, ok := dest.(*ModelWrapper)
+	if ok {
+		dest = wrapper.model
+	}
+
 	hook := NewHook(nil, w)
 	refVal := reflect.ValueOf(dest)
 	hook.callMethod("BeforeFind", refVal)
@@ -185,7 +207,7 @@ func (w *DB) Get(dest interface{}, query string, args ...interface{}) (err error
 
 	if reflect.Indirect(refVal).Kind() == reflect.Struct {
 		// relation data fill
-		err = RelationOne(dest, w.RelationMap)
+		err = RelationOne(wrapper, w, dest)
 	}
 
 	if err != nil {
@@ -224,6 +246,11 @@ func (w *DB) Select(dest interface{}, query string, args ...interface{}) (err er
 		return err
 	}
 
+	wrapper, ok := dest.(*ModelWrapper)
+	if ok {
+		dest = wrapper.model
+	}
+
 	err = w.db().Select(dest, query, newArgs...)
 	if err != nil {
 		return err
@@ -233,7 +260,7 @@ func (w *DB) Select(dest interface{}, query string, args ...interface{}) (err er
 	if t.Kind() == reflect.Slice {
 		if indirectType(t.Elem()).Kind() == reflect.Struct {
 			// relation data fill
-			err = RelationAll(dest, w.RelationMap)
+			err = RelationAll(wrapper, w, dest)
 		}
 	}
 
@@ -299,7 +326,11 @@ func (w *DB) Table(t string) *Mapper {
 // for example:
 // gosql.Use("db2").Model(&users{})
 func (w *DB) Model(m interface{}) *Builder {
-	return &Builder{model: m, db: w, SQLBuilder: SQLBuilder{dialect: newDialect(w.DriverName())}}
+	if v1, ok := m.(*ModelWrapper); ok {
+		return &Builder{modelWrapper: v1, model: v1.model, db: w, SQLBuilder: SQLBuilder{dialect: newDialect(w.DriverName())}}
+	} else {
+		return &Builder{model: m, db: w, SQLBuilder: SQLBuilder{dialect: newDialect(w.DriverName())}}
+	}
 }
 
 // Model database handler from to struct with context
@@ -373,6 +404,11 @@ func Use(db string) *DB {
 // Exec default database
 func Exec(query string, args ...interface{}) (sql.Result, error) {
 	return Use(defaultLink).Exec(query, args...)
+}
+
+// Exec default database
+func NamedExec(query string, args interface{}) (sql.Result, error) {
+	return Use(defaultLink).NamedExec(query, args)
 }
 
 // Queryx default database

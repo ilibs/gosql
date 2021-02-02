@@ -41,8 +41,26 @@ func newModel(value reflect.Value, connection string) *Builder {
 	return m
 }
 
+func newModelWithWrapper(wrapper *ModelWrapper, defaultDb *DB, value reflect.Value, connection string) *Builder {
+	var m *Builder
+	if connection != "" {
+		var relationDb *DB
+		if wrapper != nil { // if wrapper model
+			relationDb = wrapper.GetRelationDB(connection)
+		} else {
+			// if not wrapper, so use
+			relationDb = Use(connection)
+		}
+		m = relationDb.Model(value.Interface())
+	} else {
+		// if connection is null,so db is default link
+		m = defaultDb.Model(value.Interface())
+	}
+	return m
+}
+
 // RelationOne is get the associated relational data for a single piece of data
-func RelationOne(data interface{}, chains map[string]BuilderChainFunc) error {
+func RelationOne(wrapper *ModelWrapper, db *DB, data interface{}) error {
 	refVal := reflect.Indirect(reflect.ValueOf(data))
 	t := refVal.Type()
 
@@ -51,9 +69,10 @@ func RelationOne(data interface{}, chains map[string]BuilderChainFunc) error {
 		// if field type is slice then one-to-many ,eg: []*Struct
 		if field.Type.Kind() == reflect.Slice {
 			foreignModel = reflect.New(field.Type)
-			m := newModel(foreignModel, connection)
+			// m := newModel(foreignModel, connection)
+			m := newModelWithWrapper(wrapper, db, foreignModel, connection)
 
-			if chainFn, ok := chains[name]; ok {
+			if chainFn, ok := db.RelationMap[name]; ok {
 				chainFn(m)
 			}
 
@@ -75,9 +94,9 @@ func RelationOne(data interface{}, chains map[string]BuilderChainFunc) error {
 		} else {
 			// If field type is struct the one-to-one,eg: *Struct
 			foreignModel = reflect.New(field.Type.Elem())
-			m := newModel(foreignModel, connection)
-
-			if chainFn, ok := chains[name]; ok {
+			// m := newModel(foreignModel, connection)
+			m := newModelWithWrapper(wrapper, db, foreignModel, connection)
+			if chainFn, ok := db.RelationMap[name]; ok {
 				chainFn(m)
 			}
 
@@ -96,7 +115,7 @@ func RelationOne(data interface{}, chains map[string]BuilderChainFunc) error {
 }
 
 // RelationAll is gets the associated relational data for multiple pieces of data
-func RelationAll(data interface{}, chains map[string]BuilderChainFunc) error {
+func RelationAll(wrapper *ModelWrapper, db *DB, data interface{}) error {
 	refVal := reflect.Indirect(reflect.ValueOf(data))
 
 	l := refVal.Len()
@@ -126,9 +145,9 @@ func RelationAll(data interface{}, chains map[string]BuilderChainFunc) error {
 		// if field type is slice then one to many ,eg: []*Struct
 		if field.Type.Kind() == reflect.Slice {
 			foreignModel = reflect.New(field.Type)
-			m := newModel(foreignModel, connection)
-
-			if chainFn, ok := chains[name]; ok {
+			// m := newModel(foreignModel, connection)
+			m := newModelWithWrapper(wrapper, db, foreignModel, connection)
+			if chainFn, ok := db.RelationMap[name]; ok {
 				chainFn(m)
 			}
 
@@ -170,9 +189,10 @@ func RelationAll(data interface{}, chains map[string]BuilderChainFunc) error {
 
 			// Batch get field values, but must new slice []*Struct
 			fi := reflect.New(reflect.SliceOf(foreignModel.Type()))
-			m := newModel(fi, connection)
+			// m := newModel(fi, connection)
+			m := newModelWithWrapper(wrapper, db, fi, connection)
 
-			if chainFn, ok := chains[name]; ok {
+			if chainFn, ok := db.RelationMap[name]; ok {
 				chainFn(m)
 			}
 
