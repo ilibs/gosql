@@ -1,3 +1,6 @@
 /vendor
 .idea/
 Gopkg.lock
+cover.out
+cover_total.out
+cover.html

@@ -128,8 +128,8 @@ func TestQueryx(t *testing.T) {
 		defer rows.Close()
 
 		for rows.Next() {
-			//results := make(map[string]interface{})
-			//err = rows.MapScan(results)
+			// results := make(map[string]interface{})
+			// err = rows.MapScan(results)
 			var name string
 			err = rows.Scan(&name)
 			if err != nil {
@@ -307,7 +307,7 @@ func TestSelectIn(t *testing.T) {
 
 func TestTx(t *testing.T) {
 	RunWithSchema(t, func(t *testing.T) {
-		//1
+		// 1
 		{
 			Tx(func(tx *DB) error {
 				for id := 1; id < 10; id++ {
@@ -337,7 +337,7 @@ func TestTx(t *testing.T) {
 			}
 		}
 
-		//2
+		// 2
 		{
 			Tx(func(tx *DB) error {
 				for id := 1; id < 10; id++ {
@@ -444,8 +444,8 @@ func TestWrapper_Relation(t *testing.T) {
 			b.Where("status = 0")
 		}).Get(moment, "select * from moments")
 
-		//b, _ := json.MarshalIndent(moment, "", "	")
-		//fmt.Println(string(b), err)
+		// b, _ := json.MarshalIndent(moment, "", "	")
+		// fmt.Println(string(b), err)
 
 		if err != nil {
 			t.Fatal(err)
@@ -507,6 +507,22 @@ func TestDB_Begin(t *testing.T) {
 		err = tx.Commit()
 		if err != nil {
 			t.Fatalf("with transaction commit error %s", err)
+		}
+	})
+}
+
+func TestRelation(t *testing.T) {
+	RunWithSchema(t, func(t *testing.T) {
+		initDatas(t)
+
+		moment := &MomentList{}
+		err := Relation("User", func(b *Builder) {
+			// this is builder instance
+			b.Where("status = 1")
+		}).Get(moment, "select * from moments where id = 1")
+
+		if err != nil {
+			t.Fatalf("relation query error %s", err)
 		}
 	})
 }

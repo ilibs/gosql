@@ -6,7 +6,7 @@ import (
 	"testing"
 )
 
-func TestJsonValue(t *testing.T) {
+func TestJsonObject(t *testing.T) {
 	type args struct {
 		value interface{}
 	}

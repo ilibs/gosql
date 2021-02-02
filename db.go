@@ -1,14 +1,10 @@
 package gosql
 
 import (
-	"bufio"
-	"bytes"
 	"context"
 	"database/sql"
 	"log"
-	"os"
 	"reflect"
-	"strings"
 	"time"
 
 	"github.com/jmoiron/sqlx"
@@ -340,48 +336,6 @@ func (w *DB) WithContext(ctx context.Context) *Builder {
 	return &Builder{db: w, SQLBuilder: SQLBuilder{dialect: newDialect(w.DriverName())}, ctx: ctx}
 }
 
-// Import SQL DDL from sql file
-func (w *DB) Import(f string) ([]sql.Result, error) {
-	file, err := os.Open(f)
-	if err != nil {
-		return nil, err
-	}
-	defer file.Close()
-
-	var results []sql.Result
-	scanner := bufio.NewScanner(file)
-
-	semiColSpliter := func(data []byte, atEOF bool) (advance int, token []byte, err error) {
-		if atEOF && len(data) == 0 {
-			return 0, nil, nil
-		}
-		if i := bytes.IndexByte(data, ';'); i >= 0 {
-			return i + 1, data[0:i], nil
-		}
-		// If we're at EOF, we have a final, non-terminated line. Return it.
-		if atEOF {
-			return len(data), data, nil
-		}
-		// Request more data.
-		return 0, nil, nil
-	}
-
-	scanner.Split(semiColSpliter)
-
-	for scanner.Scan() {
-		query := strings.Trim(scanner.Text(), " \t\n\r")
-		if len(query) > 0 {
-			result, err := w.db().Exec(query)
-			results = append(results, result)
-			if err != nil {
-				return nil, err
-			}
-		}
-	}
-
-	return results, nil
-}
-
 // Relation association table builder handle
 func (w *DB) Relation(name string, fn BuilderChainFunc) *DB {
 	if w.RelationMap == nil {
@@ -439,11 +393,6 @@ func Get(dest interface{}, query string, args ...interface{}) error {
 // Select default database
 func Select(dest interface{}, query string, args ...interface{}) error {
 	return Use(defaultLink).Select(dest, query, args...)
-}
-
-// Import SQL DDL from io.Reader
-func Import(f string) ([]sql.Result, error) {
-	return Use(defaultLink).Import(f)
 }
 
 // Relation association table builder handle
