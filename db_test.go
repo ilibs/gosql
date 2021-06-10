@@ -67,7 +67,7 @@ func TestBatchExec(t *testing.T) {
 				{Name: "test4", Status: 1, CreatedAt: time.Now(), UpdatedAt: time.Now()},
 			}
 
-			result, err := NamedExec("insert into users(name,status,created_at,updated_at) value(:name,:status,:created_at,:updated_at)", users)
+			result, err := NamedExec("insert into users(name,status,created_at,updated_at) values(:name,:status,:created_at,:updated_at)", users)
 
 			if err != nil {
 				t.Error(err)
@@ -87,7 +87,7 @@ func TestBatchExec(t *testing.T) {
 				{"name": "test8", "status": 1, "created_at": "2021-01-25 12:22:22", "updated_at": "2021-01-25 12:22:22"},
 			}
 
-			result, err := NamedExec("insert into users(name,status,created_at,updated_at) value(:name,:status,:created_at,:updated_at)", users)
+			result, err := NamedExec("insert into users(name,status,created_at,updated_at) values(:name,:status,:created_at,:updated_at)", users)
 
 			if err != nil {
 				t.Error(err)
