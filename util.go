@@ -109,8 +109,11 @@ func fillPrimaryKey(v reflect.Value, value int64) {
 	v = reflect.Indirect(v)
 	if v.IsValid() {
 		switch v.Kind() {
-		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64, reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 			v.SetInt(value)
+
+		case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+			v.SetUint(uint64(value))
 		}
 	}
 }
