@@ -235,3 +235,24 @@ func TestUtil_sortedParamKeys(t *testing.T) {
 		}
 	}
 }
+
+func Test_fillPrimaryKey(t *testing.T) {
+	var a int
+	var b uint
+
+	{
+		v := reflect.ValueOf(&a)
+		fillPrimaryKey(v, 123)
+		if a != 123 {
+			t.Errorf("value want %d,but get %d", 123, a)
+		}
+	}
+
+	{
+		v := reflect.ValueOf(&b)
+		fillPrimaryKey(v, 465)
+		if b != 465 {
+			t.Errorf("value want %d,but get %d", 465, b)
+		}
+	}
+}
