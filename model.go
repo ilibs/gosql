@@ -245,8 +245,16 @@ func (b *Builder) Create() (lastInsertId int64, err error) {
 }
 
 func (b *Builder) generateWhere(m map[string]interface{}) {
-	for k, v := range m {
-		b.Where(fmt.Sprintf("%s=?", k), v)
+	if b.db.DriverName()=="postgres"{
+		i:=1
+		for k, v := range m {
+			b.Where(fmt.Sprintf("%s=$"+strconv.Itoa(i), k), v)
+			i++
+		}
+	}else{
+		for k, v := range m {
+			b.Where(fmt.Sprintf("%s=?", k), v)
+		}
 	}
 }
 
@@ -254,7 +262,11 @@ func (b *Builder) generateWhereForPK(m map[string]interface{}) {
 	pk := b.modelEntity.PK()
 	pval, has := m[pk]
 	if b.where == "" && has {
-		b.Where(fmt.Sprintf("%s=?", pk), pval)
+		if b.db.DriverName()=="postgres" {
+			b.Where(fmt.Sprintf("%s=$1", pk), pval)
+		}else{
+			b.Where(fmt.Sprintf("%s=?", pk), pval)
+		}
 		delete(m, pk)
 	}
 }
