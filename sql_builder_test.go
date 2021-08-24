@@ -116,7 +116,7 @@ func TestSQLBuilder_countString(t *testing.T) {
 func TestSQLBuilder_Dialect(t *testing.T) {
 	testData := map[string]string{
 		"mysql":    "INSERT INTO `users` (`created_at`,`email`,`id`,`name`,`updated_at`) VALUES(?,?,?,?,?);",
-		"postgres": `INSERT INTO "users" ("created_at","email","id","name","updated_at") VALUES(?,?,?,?,?);`,
+		"postgres": `INSERT INTO "users" ("created_at","email","id","name","updated_at") VALUES($1,$2,$3,$4,$5);`,
 		"sqlite3":  `INSERT INTO "users" ("created_at","email","id","name","updated_at") VALUES(?,?,?,?,?);`,
 	}
 

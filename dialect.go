@@ -11,6 +11,9 @@ type Dialect interface {
 
 	// Quote quotes field name to avoid SQL parsing exceptions by using a reserved word as a field name
 	Quote(key string) string
+
+	// Placeholder is where value holder default "?"
+	Placeholder() string
 }
 
 type commonDialect struct {
@@ -22,6 +25,10 @@ func (commonDialect) GetName() string {
 
 func (commonDialect) Quote(key string) string {
 	return fmt.Sprintf(`"%s"`, key)
+}
+
+func (*commonDialect) Placeholder() string {
+	return "?"
 }
 
 var dialectsMap = map[string]Dialect{}

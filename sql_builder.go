@@ -72,7 +72,7 @@ func (s *SQLBuilder) insertString(params map[string]interface{}) string {
 	var cols, vals []string
 	for _, k := range sortedParamKeys(params) {
 		cols = append(cols, s.dialect.Quote(k))
-		vals = append(vals, "?")
+		vals = append(vals, s.dialect.Placeholder())
 		s.args = append(s.args, params[k])
 	}
 
@@ -89,7 +89,7 @@ func (s *SQLBuilder) updateString(params map[string]interface{}) string {
 			updateFields = append(updateFields, fmt.Sprintf("%s=%s", s.dialect.Quote(k), e.expr))
 			args = append(args, e.args...)
 		} else {
-			updateFields = append(updateFields, fmt.Sprintf("%s=?", s.dialect.Quote(k)))
+			updateFields = append(updateFields, fmt.Sprintf("%s=%s", s.dialect.Quote(k), s.dialect.Placeholder()))
 			args = append(args, params[k])
 		}
 	}

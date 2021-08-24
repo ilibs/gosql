@@ -78,7 +78,7 @@ func RelationOne(wrapper *ModelWrapper, db *DB, data interface{}) error {
 
 			// batch get field values
 			// Since the structure is slice, there is no need to new Value
-			err := m.Where(fmt.Sprintf("%s=?", relations[1]), mapper.FieldByName(refVal, relations[0]).Interface()).All()
+			err := m.Where(fmt.Sprintf("%s=%s", relations[1], m.dialect.Placeholder()), mapper.FieldByName(refVal, relations[0]).Interface()).All()
 			if err != nil {
 				return err
 			}
@@ -100,7 +100,7 @@ func RelationOne(wrapper *ModelWrapper, db *DB, data interface{}) error {
 				chainFn(m)
 			}
 
-			err := m.Where(fmt.Sprintf("%s=?", relations[1]), mapper.FieldByName(refVal, relations[0]).Interface()).Get()
+			err := m.Where(fmt.Sprintf("%s=%s", relations[1], m.dialect.Placeholder()), mapper.FieldByName(refVal, relations[0]).Interface()).Get()
 			// If one-to-one NoRows is not an error that needs to be terminated
 			if err != nil && err != sql.ErrNoRows {
 				return err
@@ -153,7 +153,7 @@ func RelationAll(wrapper *ModelWrapper, db *DB, data interface{}) error {
 
 			// batch get field values
 			// Since the structure is slice, there is no need to new Value
-			err := m.Where(fmt.Sprintf("%s in(?)", relations[1]), relVals).All()
+			err := m.Where(fmt.Sprintf("%s in(%s)", relations[1], m.dialect.Placeholder()), relVals).All()
 			if err != nil {
 				return err
 			}
@@ -196,7 +196,7 @@ func RelationAll(wrapper *ModelWrapper, db *DB, data interface{}) error {
 				chainFn(m)
 			}
 
-			err := m.Where(fmt.Sprintf("%s in(?)", relations[1]), relVals).All()
+			err := m.Where(fmt.Sprintf("%s in(%s)", relations[1], m.dialect.Placeholder()), relVals).All()
 			if err != nil {
 				return err
 			}

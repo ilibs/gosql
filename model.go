@@ -246,7 +246,7 @@ func (b *Builder) Create() (lastInsertId int64, err error) {
 
 func (b *Builder) generateWhere(m map[string]interface{}) {
 	for k, v := range m {
-		b.Where(fmt.Sprintf("%s=?", k), v)
+		b.Where(fmt.Sprintf("%s=%s", k, b.dialect.Placeholder()), v)
 	}
 }
 
@@ -254,7 +254,7 @@ func (b *Builder) generateWhereForPK(m map[string]interface{}) {
 	pk := b.modelEntity.PK()
 	pval, has := m[pk]
 	if b.where == "" && has {
-		b.Where(fmt.Sprintf("%s=?", pk), pval)
+		b.Where(fmt.Sprintf("%s=%s", pk, b.dialect.Placeholder()), pval)
 		delete(m, pk)
 	}
 }
