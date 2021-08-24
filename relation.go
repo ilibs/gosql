@@ -196,6 +196,7 @@ func RelationAll(wrapper *ModelWrapper, db *DB, data interface{}) error {
 				chainFn(m)
 			}
 
+			// TODO sqlx.In maybe not support postgres
 			err := m.Where(fmt.Sprintf("%s in(%s)", relations[1], m.dialect.Placeholder()), relVals).All()
 			if err != nil {
 				return err
