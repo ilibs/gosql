@@ -7,6 +7,6 @@ type Config struct {
 	Dsn          string `yml:"dsn" toml:"dsn" json:"dsn"`
 	MaxOpenConns int    `yml:"max_open_conns" toml:"max_open_conns" json:"max_open_conns"`
 	MaxIdleConns int    `yml:"max_idle_conns" toml:"max_idle_conns" json:"max_idle_conns"`
-	MaxLifetime  int    `yml:"max_lefttime" toml:"max_lefttime" json:"max_lefttime"`
+	MaxLifetime  int    `yml:"max_lifetime" toml:"max_lifetime" json:"max_lifetime"`
 	ShowSql      bool   `yml:"show_sql" toml:"show_sql" json:"show_sql"`
 }
