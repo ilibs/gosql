@@ -42,7 +42,13 @@ func TestMain(m *testing.M) {
 }
 
 func TestWithOptions(t *testing.T) {
-	_, err := Open("mysql", "root:123456@tcp(127.0.0.1:3306)/test?charset=utf8&parseTime=True&loc=Asia%2FShanghai", WithMaxOpenConns(10), WithMaxIdleConns(100), WithMaxLifetimes(100))
+	dsn := os.Getenv("MYSQL_TEST_DSN2")
+
+	if dsn == "" {
+		dsn = "root:123456@tcp(127.0.0.1:3306)/test2?charset=utf8&parseTime=True&loc=Asia%2FShanghai"
+	}
+
+	_, err := Open("mysql", dsn, WithMaxOpenConns(10), WithMaxIdleConns(100), WithMaxLifetimes(100))
 	if err != nil {
 		t.Error(err)
 	}
