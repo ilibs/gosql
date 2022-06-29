@@ -38,13 +38,57 @@ func List() map[string]*sqlx.DB {
 	return dbService
 }
 
-// Open open gosql.DB with sqlx
-func Open(driver, dbSource string) (*DB, error) {
-	db, err := sqlx.Connect(driver, dbSource)
+type Options struct {
+	maxOpenConns int
+	maxIdleConns int
+	maxLifetime  int
+}
 
+type Option func(*Options)
+
+func WithMaxOpenConns(i int) Option {
+	return func(options *Options) {
+		options.maxOpenConns = i
+	}
+}
+
+func WithMaxIdleConns(i int) Option {
+	return func(options *Options) {
+		options.maxIdleConns = i
+	}
+}
+
+func WithMaxLifetimes(i int) Option {
+	return func(options *Options) {
+		options.maxLifetime = i
+	}
+}
+
+// Open gosql.DB with sqlx
+func Open(driver, dbSource string, opts ...Option) (*DB, error) {
+
+	var options Options
+	for _, opt := range opts {
+		opt(&options)
+	}
+
+	db, err := sqlx.Connect(driver, dbSource)
 	if err != nil {
 		return nil, err
 	}
+
+	if options.maxOpenConns > 0 {
+		db.SetMaxOpenConns(options.maxOpenConns)
+	}
+
+	if options.maxIdleConns > 0 {
+		db.SetMaxIdleConns(options.maxIdleConns)
+	}
+
+	if options.maxLifetime > 0 {
+		db.SetConnMaxLifetime(time.Duration(options.maxLifetime) * time.Second)
+	}
+
 	return &DB{database: db}, nil
 }
 
