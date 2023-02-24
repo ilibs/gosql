@@ -10,6 +10,11 @@ The package based on [sqlx](https://github.com/jmoiron/sqlx), It's simple and ke
 
 ⚠️ Because of some disruptive changes, The current major version is upgraded to V2，If you continue with V1, you can check out the v1 branches [https://github.com/ilibs/gosql/tree/v1](https://github.com/ilibs/gosql/tree/v1)
 
+## Install
+```sh
+go get github.com/ilibs/gosql
+```
+
 ## V2 ChangeLog
 - Remove the second argument to the Model() and Table() functions and replace it with WithTx(tx)
 - Remove Model interface DbName() function,use the Use() function 
